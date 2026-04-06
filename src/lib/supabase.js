@@ -85,9 +85,22 @@ export const fetchQuotedPost = async (id) => {
 };
 
 // ── Record impression ─────────────────────────────────────────
-export const recordImpression = async (postId) => {
+export const recordImpression = async (postId, walletAddress) => {
   try {
-    await supabase.from('impressions').insert({ post_id: postId });
+    // Check if this wallet already viewed this post
+    if (walletAddress) {
+      const { data: existing } = await supabase
+        .from('impressions')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('wallet_address', walletAddress)
+        .single();
+      if (existing) return; // already counted
+      await supabase.from('impressions').insert({ post_id: postId, wallet_address: walletAddress });
+    } else {
+      // Anonymous visitor — still count but no wallet
+      await supabase.from('impressions').insert({ post_id: postId });
+    }
     await supabase.rpc('increment_views', { post_id: postId });
   } catch {}
 };

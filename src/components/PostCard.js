@@ -145,6 +145,7 @@ export const PostCard = ({ post, onLike }) => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [quotedPost, setQuotedPost] = useState(null);
   const impressionRecorded = useRef(false);
+  const cardRef = useRef();
 
   useEffect(() => {
     if (post.quote_of) {
@@ -153,14 +154,39 @@ export const PostCard = ({ post, onLike }) => {
   }, [post.quote_of]);
 
   useEffect(() => {
-    if (!impressionRecorded.current) {
-      impressionRecorded.current = true;
-      recordImpression(post.id);
-      setViews(v => v + 1);
-    }
-  }, [post.id]);
+    if (impressionRecorded.current) return;
 
-  useEffect(() => {    if (walletAddress) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            // Post is at least 50% visible — start 1 second timer
+            const timer = setTimeout(() => {
+              if (!impressionRecorded.current) {
+                impressionRecorded.current = true;
+                recordImpression(post.id, walletAddress);
+                setViews(v => v + 1);
+                observer.disconnect();
+              }
+            }, 1000);
+            entry.target._timer = timer;
+          } else {
+            // Post scrolled out before 1 second — cancel timer
+            if (entry.target._timer) {
+              clearTimeout(entry.target._timer);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, [post.id, walletAddress]);
+
+  useEffect(() => {
+    if (walletAddress) {
       hasLiked(post.id, walletAddress).then(setLiked);
       hasRepressed(post.id, walletAddress).then(setRepressed);
     }
@@ -231,7 +257,7 @@ export const PostCard = ({ post, onLike }) => {
   const formatViews = (n) => n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1_000 ? `${(n/1_000).toFixed(1)}K` : n.toString();
 
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '16px', overflow: 'hidden', animation: 'fadeIn 0.3s ease forwards' }}>
+    <div ref={cardRef} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '16px', overflow: 'hidden', animation: 'fadeIn 0.3s ease forwards' }}>
 
       {/* Repressed by banner */}
       {post.repressed_by && (
@@ -251,13 +277,10 @@ export const PostCard = ({ post, onLike }) => {
             <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace" }}>{format(post.created_at)}</div>
           </div>
         </div>
-      <a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--ink)', color: 'var(--accent)', padding: '4px 9px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '10px', fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}
-  onMouseEnter={e => e.currentTarget.style.background = '#2a2a40'}
-  onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}
->
-  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s infinite' }} />
-  🪙 ${post.coin_ticker} ↗
-</a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--ink)', color: 'var(--accent)', padding: '4px 9px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '10px', fontWeight: 500 }}>
+          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s infinite' }} />
+          🪙 ${post.coin_ticker}
+        </div>
       </div>
 
       {/* Media */}
