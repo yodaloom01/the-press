@@ -17,70 +17,64 @@ const PRESETS = [100, 1000, 10000, 100000, 1000000];
 
 // Lookup any SPL token by mint address using DexScreener + Helius DAS fallback
 const lookupToken = async (mintAddress) => {
+  let ticker = mintAddress.slice(0, 6).toUpperCase();
+  let name = 'Unknown Token';
+  let logoURI = null;
+  let decimals = 6;
+  let priceUsd = 0;
+
+  // Try DexScreener first
   try {
-    const connection = getConnection();
-    const mintPubkey = new PublicKey(mintAddress);
-    const mintInfo = await getMint(connection, mintPubkey);
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mintAddress}`);
+    if (res.ok) {
+      const data = await res.json();
+      const pair = data?.pairs?.[0];
+      if (pair) {
+        ticker = pair.baseToken?.symbol || ticker;
+        name = pair.baseToken?.name || name;
+        priceUsd = parseFloat(pair.priceUsd) || 0;
+        logoURI = pair.info?.imageUrl || null;
+      }
+    }
+  } catch {}
 
-    let ticker = mintAddress.slice(0, 6).toUpperCase();
-    let name = 'Unknown Token';
-    let logoURI = null;
-    let priceUsd = 0;
-
-    // Try DexScreener first (graduated tokens)
+  // Try Helius DAS as fallback for metadata
+  if (name === 'Unknown Token') {
     try {
-      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mintAddress}`);
+      const rpc = process.env.REACT_APP_RPC_ENDPOINT;
+      const res = await fetch(rpc, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'token-lookup',
+          method: 'getAsset',
+          params: { id: mintAddress },
+        }),
+      });
       if (res.ok) {
         const data = await res.json();
-        const pair = data?.pairs?.[0];
-        if (pair) {
-          ticker = pair.baseToken?.symbol || ticker;
-          name = pair.baseToken?.name || name;
-          priceUsd = parseFloat(pair.priceUsd) || 0;
-          logoURI = pair.info?.imageUrl || null;
+        const asset = data?.result;
+        if (asset) {
+          ticker = asset.content?.metadata?.symbol || ticker;
+          name = asset.content?.metadata?.name || name;
+          logoURI = asset.content?.links?.image || asset.content?.files?.[0]?.uri || null;
         }
       }
     } catch {}
-
-    // If DexScreener didn't find it, use Helius DAS API for metadata
-    if (name === 'Unknown Token') {
-      try {
-        const rpc = process.env.REACT_APP_RPC_ENDPOINT;
-        const res = await fetch(rpc, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 'token-lookup',
-            method: 'getAsset',
-            params: { id: mintAddress },
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const asset = data?.result;
-          if (asset) {
-            ticker = asset.content?.metadata?.symbol || ticker;
-            name = asset.content?.metadata?.name || name;
-            logoURI = asset.content?.links?.image || asset.content?.files?.[0]?.uri || null;
-          }
-        }
-      } catch {}
-    }
-
-    return {
-      ticker,
-      name,
-      emoji: '🪙',
-      mint: mintAddress,
-      decimals: mintInfo.decimals,
-      coingeckoId: null,
-      logoURI,
-      priceUsd,
-    };
-  } catch (e) {
-    throw new Error('Could not find token. Check the mint address and try again.');
   }
+
+  // Try to get decimals from on-chain
+  try {
+    const { Connection, PublicKey: PK } = await import('@solana/web3.js');
+    const { getMint: gm } = await import('@solana/spl-token');
+    const conn = getConnection();
+    const mintInfo = await gm(conn, new PK(mintAddress));
+    decimals = mintInfo.decimals;
+  } catch {}
+
+  // Always return something — never throw
+  return { ticker, name, emoji: '🪙', mint: mintAddress, decimals, coingeckoId: null, logoURI, priceUsd };
 };
 
 export const PressModal = ({ onClose, onSuccess }) => {
