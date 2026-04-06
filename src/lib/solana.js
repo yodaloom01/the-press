@@ -199,13 +199,15 @@ export const transferSplToken = async (
       )
     );
 
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = walletPublicKey;
+   const { blockhash, lastValidBlockHeight } =
+    await connection.getLatestBlockhash('finalized');
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = walletPublicKey;
 
-    console.log('Sending to wallet for signing...');
-    const signature = await sendTransaction(transaction, connection, { skipPreflight: true });
-    
+  const signature = await sendTransaction(transaction, connection, { 
+    skipPreflight: true,
+    preflightCommitment: 'finalized',
+  });    
 
     console.log('Signature:', signature);
     await connection.confirmTransaction(
