@@ -1,0 +1,96 @@
+/* ============================================================
+   THE PRESS — Global Styles — Neon Casino Theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:    #050510;
+  --paper:  #0a0a1a;
+  --paper2: #0d0d24;
+  --accent: #c8a84b;
+  --accent2: #8b1a1a;
+  --press:  #06060f;
+  --text:   #e8e8f0;
+  --muted:  #555577;
+  --border: #1e1e40;
+  --card:   #0d0d24;
+  --green:  #00ff88;
+  --red:    #ff4466;
+  --cyan:   #00ffff;
+  --purple: #9944ff;
+  --radius: 6px;
+}
+
+body {
+  background: var(--press);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Diagonal felt texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 40px,
+    rgba(255,255,255,0.012) 40px,
+    rgba(255,255,255,0.012) 41px
+  ),
+  repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 40px,
+    rgba(255,255,255,0.012) 40px,
+    rgba(255,255,255,0.012) 41px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; }
+input, textarea { font-family: 'DM Sans', sans-serif; }
+
+/* Wallet adapter */
+.wallet-adapter-button {
+  background: var(--accent) !important;
+  color: #000 !important;
+  font-family: 'DM Mono', monospace !important;
+  font-size: 11px !important;
+  height: 36px !important;
+  border-radius: 3px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: var(--paper) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.wallet-adapter-modal-title {
+  font-family: 'Playfair Display', serif !important;
+  color: var(--text) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes neonPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.fade-in { animation: fadeIn 0.3s ease forwards; }
