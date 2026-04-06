@@ -15,19 +15,19 @@ import { PublicKey, Connection } from '@solana/web3.js';
 
 const PRESETS = [100, 1000, 10000, 100000, 1000000];
 
-// Lookup any SPL token by mint address using DexScreener
+// Lookup any SPL token by mint address using DexScreener + pump.fun fallback
 const lookupToken = async (mintAddress) => {
   try {
     const connection = getConnection();
     const mintPubkey = new PublicKey(mintAddress);
     const mintInfo = await getMint(connection, mintPubkey);
 
-    // Use DexScreener for metadata and price
     let ticker = mintAddress.slice(0, 6).toUpperCase();
     let name = 'Unknown Token';
     let logoURI = null;
     let priceUsd = 0;
 
+    // Try DexScreener first (graduated tokens)
     try {
       const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mintAddress}`);
       if (res.ok) {
@@ -41,6 +41,25 @@ const lookupToken = async (mintAddress) => {
         }
       }
     } catch {}
+
+    // If DexScreener didn't find it, try pump.fun API (bonding curve tokens)
+    if (name === 'Unknown Token') {
+      try {
+        const res = await fetch(`https://frontend-api.pump.fun/coins/${mintAddress}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.symbol) {
+            ticker = data.symbol;
+            name = data.name || ticker;
+            logoURI = data.image_uri || null;
+            // Calculate price from market cap and supply
+            if (data.usd_market_cap && data.total_supply) {
+              priceUsd = data.usd_market_cap / (data.total_supply / Math.pow(10, mintInfo.decimals));
+            }
+          }
+        }
+      } catch {}
+    }
 
     return {
       ticker,
