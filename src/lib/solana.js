@@ -160,8 +160,8 @@ export const transferSplToken = async (
   console.log('AMOUNT:', amount);
   console.log('WALLET:', walletPublicKey.toBase58());
   const mintAddress = new PublicKey(getCoinMint(coin));
-  const mintInfo = await getMint(connection, mintAddress);
-  const rawAmount = BigInt(Math.round(amount * Math.pow(10, mintInfo.decimals)));
+  const decimals = coin.decimals ?? 6;
+  const rawAmount = BigInt(Math.round(amount * Math.pow(10, decimals)));
 
   const fromAta = await getAssociatedTokenAddress(mintAddress, walletPublicKey);
   const toAta = await getAssociatedTokenAddress(mintAddress, PLATFORM_WALLET);
