@@ -431,3 +431,34 @@ export const createQuotePost = async ({ walletAddress, caption, mediaUrl, mediaT
   if (error) throw error;
   return data;
 };
+
+// ── User Registry ─────────────────────────────────────────────
+export const registerUser = async (walletAddress) => {
+  try {
+    const { data: existing } = await supabase
+      .from('users').select('user_number').eq('wallet_address', walletAddress).single();
+    if (existing) return existing.user_number;
+    const { data } = await supabase
+      .from('users').insert({ wallet_address: walletAddress }).select('user_number').single();
+    return data?.user_number || null;
+  } catch {}
+  return null;
+};
+
+export const getUserNumber = async (walletAddress) => {
+  try {
+    const { data } = await supabase
+      .from('users').select('user_number').eq('wallet_address', walletAddress).single();
+    return data?.user_number || null;
+  } catch {}
+  return null;
+};
+
+export const getTotalUsers = async () => {
+  try {
+    const { count } = await supabase
+      .from('users').select('*', { count: 'exact', head: true });
+    return count || 0;
+  } catch {}
+  return 0;
+};

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { PostCard } from '../components/PostCard';
 import { PressModal } from '../components/PressModal';
-import { fetchPosts, subscribeToNewPosts, fetchFollowingPosts, supabase } from '../lib/supabase';
+import { fetchPosts, subscribeToNewPosts, fetchFollowingPosts, supabase, getTotalUsers } from '../lib/supabase';
 import { shortWallet } from '../lib/solana';
 import { useCoinPrices } from '../hooks/useCoinPrices';
 
@@ -43,19 +43,42 @@ const TreasuryBalance = () => {
   return (
     <div style={{ marginTop: '20px', padding: '16px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#00ffff', opacity: 0.6 }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '16px', fontWeight: 700, color: '#00ff88', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '10px' }}>
-  Treasury
-</div>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#444466', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '10px' }}>
+        Treasury
+      </div>
       <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: 900, color: loading ? '#333355' : '#c8a84b', letterSpacing: '-1px', lineHeight: 1, marginBottom: '6px', transition: 'color 0.5s' }}>
         {loading ? '...' : formatted}
       </div>
-
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#333355', letterSpacing: '2px', textTransform: 'uppercase' }}>
+        All-time ad spend
+      </div>
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#c8a84b', opacity: 0.3 }} />
     </div>
   );
 };
 
-const SORT_OPTIONS = [
+const UserCount = () => {
+  const [total, setTotal] = useState(null);
+
+  useEffect(() => {
+    getTotalUsers().then(setTotal);
+    const interval = setInterval(() => getTotalUsers().then(setTotal), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ marginTop: '10px', padding: '12px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.6 }} />
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#444466', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px' }}>
+        Pressers
+      </div>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 900, color: '#9944ff', letterSpacing: '-1px', lineHeight: 1 }}>
+        {total === null ? '...' : total.toLocaleString()}
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.2 }} />
+    </div>
+  );
+};
   { key: 'weighted', label: '⭐ For You' },
   { key: 'following', label: '👥 Following' },
   { key: 'trending', label: '🔥 Trending' },
@@ -65,7 +88,7 @@ const SORT_OPTIONS = [
 
 export const Feed = () => {
   const { publicKey } = useWallet();
-  const { prices, coins } = useCoinPrices();
+  const { prices } = useCoinPrices();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -154,6 +177,7 @@ export const Feed = () => {
           )}
 
           <TreasuryBalance />
+          <UserCount />
         </aside>
 
         {/* Feed */}

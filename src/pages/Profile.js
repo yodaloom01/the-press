@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Header } from '../components/Header';
 import { PostCard } from '../components/PostCard';
 import { PressModal } from '../components/PressModal';
-import { supabase, fetchProfile, updateProfile, uploadAvatar, followUser, unfollowUser, isFollowing, getFollowCounts } from '../lib/supabase';
+import { supabase, fetchProfile, updateProfile, uploadAvatar, followUser, unfollowUser, isFollowing, getFollowCounts, getUserNumber } from '../lib/supabase';
 import { shortWallet, formatAmount } from '../lib/solana';
 import { clearNameCache } from '../hooks/useSolanaName';
 import { FollowListModal } from '../components/FollowListModal';
@@ -30,7 +30,8 @@ export const Profile = () => {
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
   const [followLoading, setFollowLoading] = useState(false);
   const [followModal, setFollowModal] = useState(null);
-  const [showPressModal, setShowPressModal] = useState(false); // 'followers' | 'following' | null
+  const [showPressModal, setShowPressModal] = useState(false);
+  const [userNumber, setUserNumber] = useState(null); // 'followers' | 'following' | null
 
   useEffect(() => {
     const load = async () => {
@@ -40,6 +41,7 @@ export const Profile = () => {
         supabase.from('posts').select('*').eq('wallet_address', wallet).order('created_at', { ascending: false }).then(r => r.data),
       ]);
       setProfile(profileData);
+      getUserNumber(wallet).then(setUserNumber);
       const counts = await getFollowCounts(wallet);
       setFollowCounts(counts);
       if (publicKey && !isOwner) {
@@ -187,6 +189,11 @@ export const Profile = () => {
             ) : (
               <>
                 <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: 700 }}>{displayName}</div>
+                {userNumber && (
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: '#9944ff', marginTop: '2px', letterSpacing: '1px' }}>
+                    Presser #{userNumber}
+                  </div>
+                )}
                 {profile?.bio && <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px', lineHeight: 1.5 }}>{profile.bio}</div>}
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: 'var(--muted)', marginTop: '4px', opacity: 0.6 }}>{wallet}</div>
                 {isOwner && (
@@ -239,7 +246,7 @@ export const Profile = () => {
         ) : posts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>No posts pressed yet.</div>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
+          {posts.map((post) => <PostCard key={post.id} post={post} />)}
         )}
       </div>
 
