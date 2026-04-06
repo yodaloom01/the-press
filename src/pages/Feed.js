@@ -90,7 +90,7 @@ const SORT_OPTIONS = [
 
 export const Feed = () => {
   const { publicKey } = useWallet();
-  const { prices } = useCoinPrices();
+  const { prices, coins } = useCoinPrices();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
