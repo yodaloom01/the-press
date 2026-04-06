@@ -15,26 +15,42 @@ import { PublicKey, Connection } from '@solana/web3.js';
 
 const PRESETS = [100, 1000, 10000, 100000, 1000000];
 
-// Lookup any SPL token by mint address using Solana token list + on-chain
+// Lookup any SPL token by mint address using DexScreener
 const lookupToken = async (mintAddress) => {
   try {
     const connection = getConnection();
     const mintPubkey = new PublicKey(mintAddress);
     const mintInfo = await getMint(connection, mintPubkey);
 
-    // Try Jupiter token list for metadata
-    const res = await fetch(`https://token.jup.ag/all`);
-    const list = await res.json();
-    const found = list.find(t => t.address === mintAddress);
+    // Use DexScreener for metadata and price
+    let ticker = mintAddress.slice(0, 6).toUpperCase();
+    let name = 'Unknown Token';
+    let logoURI = null;
+    let priceUsd = 0;
+
+    try {
+      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mintAddress}`);
+      if (res.ok) {
+        const data = await res.json();
+        const pair = data?.pairs?.[0];
+        if (pair) {
+          ticker = pair.baseToken?.symbol || ticker;
+          name = pair.baseToken?.name || name;
+          priceUsd = parseFloat(pair.priceUsd) || 0;
+          logoURI = pair.info?.imageUrl || null;
+        }
+      }
+    } catch {}
 
     return {
-      ticker: found?.symbol || mintAddress.slice(0, 6).toUpperCase(),
-      name: found?.name || 'Unknown Token',
+      ticker,
+      name,
       emoji: '🪙',
       mint: mintAddress,
       decimals: mintInfo.decimals,
       coingeckoId: null,
-      logoURI: found?.logoURI || null,
+      logoURI,
+      priceUsd,
     };
   } catch (e) {
     throw new Error('Could not find token. Check the mint address and try again.');
