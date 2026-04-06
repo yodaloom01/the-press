@@ -91,6 +91,7 @@ export const PressModal = ({ onClose, onSuccess }) => {
   const [preview, setPreview] = useState(null);
   const [step, setStep] = useState('idle');
   const [platformSpend24h, setPlatformSpend24h] = useState(0);
+  const [livePrice, setLivePrice] = useState(0);
   const fileRef = useRef();
 
   useEffect(() => {
@@ -105,8 +106,26 @@ export const PressModal = ({ onClose, onSuccess }) => {
     fetchSpend();
   }, []);
 
-  const usdValue = tokenInfo?.priceUsd ? Number(amount || 0) * tokenInfo.priceUsd : 0;
-  const reach = calculateReach(Number(amount || 0), tokenInfo?.priceUsd || 0, platformSpend24h);
+  // Fetch live price independently when amount changes — never affects token lookup
+  useEffect(() => {
+    if (!tokenInfo?.mint || !amount) { setLivePrice(0); return; }
+    const fetchPrice = async () => {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenInfo.mint}`);
+        if (res.ok) {
+          const data = await res.json();
+          const pair = data?.pairs?.[0];
+          if (pair?.priceUsd) { setLivePrice(parseFloat(pair.priceUsd)); return; }
+        }
+      } catch {}
+      setLivePrice(0);
+    };
+    fetchPrice();
+  }, [amount, tokenInfo?.mint]);
+
+  const effectivePrice = livePrice || tokenInfo?.priceUsd || 0;
+  const usdValue = effectivePrice ? Number(amount || 0) * effectivePrice : 0;
+  const reach = calculateReach(Number(amount || 0), effectivePrice, platformSpend24h);
   const tier = getReachTier(usdValue);
 
   const handleLookup = async () => {
