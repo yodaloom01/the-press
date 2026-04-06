@@ -136,13 +136,7 @@ export const PressModal = ({ onClose, onSuccess }) => {
     try {
       const info = await lookupToken(mintInput.trim());
       // Try to get price from CoinGecko or Jupiter
-      try {
-        const priceRes = await fetch(`https://price.jup.ag/v6/price?ids=${mintInput.trim()}`);
-        const priceData = await priceRes.json();
-        info.priceUsd = priceData?.data?.[mintInput.trim()]?.price || 0;
-      } catch {
-        info.priceUsd = 0;
-      }
+   
       setTokenInfo(info);
     } catch (e) {
       setLookupError(e.message);
