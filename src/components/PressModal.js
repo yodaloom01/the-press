@@ -15,7 +15,7 @@ import { PublicKey, Connection } from '@solana/web3.js';
 
 const PRESETS = [100, 1000, 10000, 100000, 1000000];
 
-// Lookup any SPL token by mint address using DexScreener + pump.fun fallback
+// Lookup any SPL token by mint address using DexScreener + Helius DAS fallback
 const lookupToken = async (mintAddress) => {
   try {
     const connection = getConnection();
@@ -42,20 +42,27 @@ const lookupToken = async (mintAddress) => {
       }
     } catch {}
 
-    // If DexScreener didn't find it, try pump.fun API (bonding curve tokens)
+    // If DexScreener didn't find it, use Helius DAS API for metadata
     if (name === 'Unknown Token') {
       try {
-        const res = await fetch(`https://frontend-api.pump.fun/coins/${mintAddress}`);
+        const rpc = process.env.REACT_APP_RPC_ENDPOINT;
+        const res = await fetch(rpc, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'token-lookup',
+            method: 'getAsset',
+            params: { id: mintAddress },
+          }),
+        });
         if (res.ok) {
           const data = await res.json();
-          if (data?.symbol) {
-            ticker = data.symbol;
-            name = data.name || ticker;
-            logoURI = data.image_uri || null;
-            // Calculate price from market cap and supply
-            if (data.usd_market_cap && data.total_supply) {
-              priceUsd = data.usd_market_cap / (data.total_supply / Math.pow(10, mintInfo.decimals));
-            }
+          const asset = data?.result;
+          if (asset) {
+            ticker = asset.content?.metadata?.symbol || ticker;
+            name = asset.content?.metadata?.name || name;
+            logoURI = asset.content?.links?.image || asset.content?.files?.[0]?.uri || null;
           }
         }
       } catch {}
