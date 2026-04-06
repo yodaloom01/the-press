@@ -246,7 +246,7 @@ export const Profile = () => {
         ) : posts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>No posts pressed yet.</div>
         ) : (
-          {posts.map((post) => <PostCard key={post.id} post={post} />)}
+         posts.map((post) => <PostCard key={post.id} post={post} />)
         )}
       </div>
 
