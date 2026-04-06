@@ -79,6 +79,8 @@ const UserCount = () => {
     </div>
   );
 };
+
+const SORT_OPTIONS = [
   { key: 'weighted', label: '⭐ For You' },
   { key: 'following', label: '👥 Following' },
   { key: 'trending', label: '🔥 Trending' },
