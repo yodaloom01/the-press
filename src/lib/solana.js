@@ -156,6 +156,9 @@ export const transferSplToken = async (
   amount
 ) => {
   const connection = getConnection();
+  console.log('MINT:', getCoinMint(coin));
+  console.log('AMOUNT:', amount);
+  console.log('WALLET:', walletPublicKey.toBase58());
   const mintAddress = new PublicKey(getCoinMint(coin));
   const mintInfo = await getMint(connection, mintAddress);
   const rawAmount = BigInt(Math.round(amount * Math.pow(10, mintInfo.decimals)));
