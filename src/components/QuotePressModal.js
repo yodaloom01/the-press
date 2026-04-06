@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import toast from 'react-hot-toast';
 import { transferSplToken, calculateReach, formatReach, getReachTier } from '../lib/solana';
-import { uploadMedia, createPost } from '../lib/supabase';
+import { uploadMedia, createPost, supabase } from '../lib/supabase';
 import { WalletAvatar, WalletName } from './WalletName';
 import { format } from 'timeago.js';
 import { formatAmount } from '../lib/solana';
@@ -42,10 +42,23 @@ export const QuotePressModal = ({ post, onClose, onSuccess }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [step, setStep] = useState('idle');
+  const [platformSpend24h, setPlatformSpend24h] = useState(0);
   const fileRef = useRef();
 
+  useEffect(() => {
+    const fetchSpend = async () => {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase.from('posts').select('amount_paid_usd').gte('created_at', since);
+      if (data) {
+        const total = data.reduce((sum, p) => sum + Number(p.amount_paid_usd || 0), 0);
+        setPlatformSpend24h(total);
+      }
+    };
+    fetchSpend();
+  }, []);
+
   const usdValue = tokenInfo?.priceUsd ? Number(amount || 0) * tokenInfo.priceUsd : 0;
-  const reach = calculateReach(Number(amount || 0), tokenInfo?.priceUsd || 0);
+  const reach = calculateReach(Number(amount || 0), tokenInfo?.priceUsd || 0, platformSpend24h);
   const tier = getReachTier(usdValue);
 
   const handleLookup = async () => {
