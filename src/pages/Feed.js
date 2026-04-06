@@ -43,7 +43,7 @@ const TreasuryBalance = () => {
   return (
     <div style={{ marginTop: '20px', padding: '16px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#00ffff', opacity: 0.6 }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#444466', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '10px' }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#ffffff', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '10px' }}>
         Treasury
       </div>
       <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: 900, color: loading ? '#333355' : '#00ff88', letterSpacing: '-1px', lineHeight: 1, marginBottom: '6px', transition: 'color 0.5s' }}>
@@ -69,10 +69,10 @@ const UserCount = () => {
   return (
     <div style={{ marginTop: '10px', padding: '12px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.6 }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#444466', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px' }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#ffffff', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px' }}>
         Total Users
       </div>
-      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 900, color: '#00ff88', letterSpacing: '-1px', lineHeight: 1 }}>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 900, color: '#9944ff', letterSpacing: '-1px', lineHeight: 1 }}>
         {total === null ? '...' : total.toLocaleString()}
       </div>
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.2 }} />
