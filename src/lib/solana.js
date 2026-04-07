@@ -2,13 +2,6 @@
 // THE PRESS — Solana Utilities
 // Handles SPL token transfers, coin registry, reach calculation
 // ============================================================
-
-import {
-  Connection,
-  PublicKey,
-  Transaction,
-  clusterApiUrl,
-} from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
@@ -16,6 +9,7 @@ import {
   getAccount,
   createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from '@solana/spl-token';
 
 // ── Network ──────────────────────────────────────────────────
@@ -156,52 +150,53 @@ export const transferSplToken = async (
   amount
 ) => {
   const connection = getConnection();
-  console.log('MINT:', getCoinMint(coin));
-  console.log('AMOUNT:', amount);
-  console.log('WALLET:', walletPublicKey.toBase58());
   const mintAddress = new PublicKey(getCoinMint(coin));
-  const decimals = coin.decimals ?? 6;
+
+  // Detect token program (standard vs Token-2022)
+  const mintAccountInfo = await connection.getAccountInfo(mintAddress);
+  const tokenProgramId = mintAccountInfo?.owner?.toBase58() === TOKEN_2022_PROGRAM_ID.toBase58()
+    ? TOKEN_2022_PROGRAM_ID
+    : TOKEN_PROGRAM_ID;
+
+  // Use decimals from coin lookup, fallback to getMint
+  let decimals = coin.decimals ?? 6;
+  try {
+    const mintInfo = await getMint(connection, mintAddress, 'confirmed', tokenProgramId);
+    decimals = mintInfo.decimals;
+  } catch {}
+
   const rawAmount = BigInt(Math.round(amount * Math.pow(10, decimals)));
 
-  const fromAta = await getAssociatedTokenAddress(mintAddress, walletPublicKey);
-  const toAta = await getAssociatedTokenAddress(mintAddress, PLATFORM_WALLET);
+  const fromAta = await getAssociatedTokenAddress(mintAddress, walletPublicKey, false, tokenProgramId);
+  const toAta = await getAssociatedTokenAddress(mintAddress, PLATFORM_WALLET, false, tokenProgramId);
 
   const transaction = new Transaction();
 
-  // Create destination ATA if it doesn't exist yet
   try {
-    await getAccount(connection, toAta);
+    await getAccount(connection, toAta, 'confirmed', tokenProgramId);
   } catch {
     transaction.add(
       createAssociatedTokenAccountInstruction(
-        walletPublicKey,
-        toAta,
-        PLATFORM_WALLET,
-        mintAddress
+        walletPublicKey, toAta, PLATFORM_WALLET, mintAddress, tokenProgramId
       )
     );
   }
 
-  // Add the transfer instruction
   transaction.add(
     createTransferInstruction(
-      fromAta,
-      toAta,
-      walletPublicKey,
-      rawAmount,
-      [],
-      TOKEN_PROGRAM_ID
+      fromAta, toAta, walletPublicKey, rawAmount, [], tokenProgramId
     )
   );
 
-  const { blockhash, lastValidBlockHeight } =
-    await connection.getLatestBlockhash();
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = walletPublicKey;
 
-  const signature = await sendTransaction(transaction, connection);
+  const signature = await sendTransaction(transaction, connection, {
+    skipPreflight: true,
+    preflightCommitment: 'finalized',
+  });
 
-  // Wait for confirmation
   await connection.confirmTransaction(
     { signature, blockhash, lastValidBlockHeight },
     'confirmed'
