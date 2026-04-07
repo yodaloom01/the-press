@@ -68,7 +68,11 @@ export const fetchPosts = async (sortBy = 'weighted', limit = 20) => {
       return Number(b.amount_paid_usd) - Number(a.amount_paid_usd);
     }).slice(0, limit);
   }
-  if (sortBy === 'trending') return posts.sort((a, b) => getTrendingScore(b) - getTrendingScore(a)).slice(0, limit);
+  if (sortBy === 'trending') {
+  const { data: trendingData, error: trendingError } = await supabase.rpc('get_trending_posts', { limit_count: 40 });
+  if (trendingError) throw trendingError;
+  return trendingData || [];
+}
   if (sortBy === 'amount_paid_usd') return posts.sort((a, b) => Number(b.amount_paid_usd) - Number(a.amount_paid_usd)).slice(0, limit);
   if (sortBy === 'created_at') return posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, limit);
   return posts.slice(0, limit);
