@@ -12,19 +12,31 @@ import {
   TOKEN_2022_PROGRAM_ID,
 } from '@solana/spl-token';
 
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  clusterApiUrl,
+} from '@solana/web3.js';
+
 // ── Network ──────────────────────────────────────────────────
 export const NETWORK = process.env.REACT_APP_SOLANA_NETWORK || 'devnet';
 export const RPC_ENDPOINT =
-  process.env.REACT_APP_RPC_ENDPOINT || clusterApiUrl(NETWORK);
+  'https://mainnet.helius-rpc.com/?api-key=56557c79-1e29-43da-a73f-1b8f58e3140a';
 
 export const getConnection = () => new Connection(RPC_ENDPOINT, 'confirmed');
 
 // ── Platform wallet (receives payments) ──────────────────────
-export const PLATFORM_WALLET = new PublicKey(
-  process.env.REACT_APP_PLATFORM_WALLET ||
-    '11111111111111111111111111111111' // placeholder
-);
-
+let _platformWallet = null;
+export const getPlatformWallet = () => {
+  if (!_platformWallet) {
+    _platformWallet = new PublicKey(
+      process.env.REACT_APP_PLATFORM_WALLET ||
+        '11111111111111111111111111111111'
+    );
+  }
+  return _platformWallet;
+};
 // ── SPL Memecoins on Solana ───────────────────────────────────
 // Mainnet mint addresses for popular SPL memecoins
 export const SUPPORTED_COINS = [
@@ -168,7 +180,7 @@ export const transferSplToken = async (
   const rawAmount = BigInt(Math.round(amount * Math.pow(10, decimals)));
 
   const fromAta = await getAssociatedTokenAddress(mintAddress, walletPublicKey, false, tokenProgramId);
-  const toAta = await getAssociatedTokenAddress(mintAddress, PLATFORM_WALLET, false, tokenProgramId);
+  const toAta = await getAssociatedTokenAddress(mintAddress,getPlatformWallet(), false, tokenProgramId);
 
   const transaction = new Transaction();
 
@@ -177,7 +189,7 @@ export const transferSplToken = async (
   } catch {
     transaction.add(
       createAssociatedTokenAccountInstruction(
-        walletPublicKey, toAta, PLATFORM_WALLET, mintAddress, tokenProgramId
+        walletPublicKey, toAta, getPlatformWallet(), mintAddress, tokenProgramId
       )
     );
   }

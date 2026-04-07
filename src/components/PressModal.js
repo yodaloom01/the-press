@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 
 import { transferSplToken, calculateReach, formatReach, getReachTier } from '../lib/solana';
 import { uploadMedia, createPost, supabase } from '../lib/supabase';
-import { getConnection } from '../lib/solana';
 import { getMint } from '@solana/spl-token';
 import { PublicKey, Connection } from '@solana/web3.js';
 
@@ -66,13 +65,10 @@ const lookupToken = async (mintAddress) => {
 
   // Try to get decimals from on-chain
   try {
-    const { Connection, PublicKey: PK } = await import('@solana/web3.js');
-    const { getMint: gm } = await import('@solana/spl-token');
-    const conn = getConnection();
-    const mintInfo = await gm(conn, new PK(mintAddress));
-    decimals = mintInfo.decimals;
-  } catch {}
-
+  const conn = getConnection();
+  const mintInfo = await getMint(conn, new PublicKey(mintAddress));
+  decimals = mintInfo.decimals;
+} catch {}
   // Always return something — never throw
   return { ticker, name, emoji: '🪙', mint: mintAddress, decimals, coingeckoId: null, logoURI, priceUsd };
 };
