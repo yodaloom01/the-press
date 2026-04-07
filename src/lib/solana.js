@@ -205,7 +205,7 @@ export const transferSplToken = async (
   transaction.feePayer = walletPublicKey;
 
   const signature = await sendTransaction(transaction, connection, {
-    skipPreflight: true,
+    skipPreflight: false,
     preflightCommitment: 'finalized',
   });
 
