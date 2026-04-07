@@ -279,7 +279,7 @@ export const PostCard = ({ post, onLike }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--ink)', color: 'var(--accent)', padding: '4px 9px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '10px', fontWeight: 500 }}>
           <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s infinite' }} />
-          🪙 ${post.coin_ticker}
+          <a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none' }}>🪙 ${post.coin_ticker}</a>
         </div>
       </div>
 
