@@ -265,19 +265,20 @@ export const Feed = () => {
           </div>
 
           {/* The Pizza Moment */}
-          <div style={{ background: 'var(--ink)', borderRadius: '6px', padding: '14px' }}>
+         <div style={{ background: 'var(--ink)', borderRadius: '6px', padding: '14px' }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--accent)', letterSpacing: '1.5px', marginBottom: '8px' }}>
-              🍕 THE PRESS MOMENT
+              🗞️ HOW IT WORKS
             </div>
             <div style={{ fontSize: '11px', color: '#aaa', lineHeight: 1.7 }}>
-              In 2010, someone paid 10,000 Bitcoin for two pizzas. At the time, it seemed like nothing. Years later, it became the most famous transaction in crypto history — not because of the pizza, but because of what that Bitcoin became worth.
+              The Press runs on attention — paid for with memecoins.
               <br /><br />
-              Somewhere on The Press, someone is going to spend an absurd amount of a coin nobody's heard of — just to post a meme. That meme is going to be so funny, so perfectly timed, that it spreads everywhere. And when people ask why that coin is pumping, someone is going to find <em>that post</em>.
+              Find a coin you believe in. Paste its mint address, set your amount, and press your post. The more you spend, the more impressions your post earns.
               <br /><br />
-              <span style={{ color: 'var(--accent)' }}>That post is already out there. It just hasn't been pressed yet.</span>
+              But spending alone doesn't make you viral. Posts that earn real likes, comments, and represses climb the trending feed fast. Pay to get seen. Earn your way to the top.
+              <br /><br />
+              <span style={{ color: 'var(--accent)' }}>Oil powered the industrial age. Memecoins power the attention age.</span>
             </div>
-          </div>
-        </aside>
+          </div>        </aside>
       </div>
 
       {showModal && (
