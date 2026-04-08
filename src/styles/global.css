@@ -94,3 +94,51 @@ input, textarea { font-family: 'DM Sans', sans-serif; }
 @keyframes neonPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+/* ============================================================
+   MOBILE RESPONSIVE — applies below 768px
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Hide sidebars on mobile */
+  aside {
+    display: none !important;
+  }
+
+  /* Feed takes full width */
+  div[style*="grid-template-columns"] {
+    display: block !important;
+  }
+
+  /* Header wallet button smaller */
+  .wallet-adapter-button {
+    font-size: 10px !important;
+    height: 30px !important;
+    padding: 0 10px !important;
+  }
+
+  /* Sort tabs scrollable */
+  div[style*="borderBottom"][style*="flex"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Post cards full width */
+  main {
+    padding: 10px !important;
+  }
+
+  /* Modal full screen on mobile */
+  div[style*="maxWidth: '540px'"] {
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide search on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+
+}

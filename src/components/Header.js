@@ -96,7 +96,7 @@ export const Header = ({ onPressClick }) => {
         </div>
 
         {/* Search bar — center */}
-        <div style={{ flex: 1, maxWidth: '400px' }}>
+        <div style={{ flex: 1, maxWidth: '400px' }} className="desktop-only">
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" style={{ position: 'absolute', left: '10px', flexShrink: 0 }}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>

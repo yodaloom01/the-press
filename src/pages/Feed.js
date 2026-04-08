@@ -281,12 +281,37 @@ export const Feed = () => {
           </div>        </aside>
       </div>
 
-      {showModal && (
+    {showModal && (
         <PressModal
           onClose={() => setShowModal(false)}
           onSuccess={handlePostSuccess}
         />
       )}
-    </>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-nav" style={{ display: 'none' }}>
+        <div onClick={() => setSort('weighted')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'weighted' ? 'var(--accent)' : 'var(--muted)', fontSize: '10px' }}>
+          <span style={{ fontSize: '20px' }}>📰</span>
+          <span>Feed</span>
+        </div>
+        <div onClick={() => setSort('trending')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'trending' ? 'var(--accent)' : 'var(--muted)', fontSize: '10px' }}>
+          <span style={{ fontSize: '20px' }}>🔥</span>
+          <span>Trending</span>
+        </div>
+        {publicKey && (
+          <div onClick={() => setShowModal(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', fontSize: '10px' }}>
+            <div style={{ width: '44px', height: '44px', background: 'var(--accent2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginTop: '-20px', border: '3px solid var(--press)' }}>+</div>
+            <span style={{ color: 'var(--muted)' }}>Press</span>
+          </div>
+        )}
+        <div onClick={() => navigate('/search')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: 'var(--muted)', fontSize: '10px' }}>
+          <span style={{ fontSize: '20px' }}>🔍</span>
+          <span>Search</span>
+        </div>
+        <div onClick={() => publicKey && navigate(`/profile/${publicKey.toBase58()}`)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: 'var(--muted)', fontSize: '10px' }}>
+          <span style={{ fontSize: '20px' }}>👤</span>
+          <span>Profile</span>
+        </div>
+      </div>    </>
   );
 };
