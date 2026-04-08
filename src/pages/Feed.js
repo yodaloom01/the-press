@@ -18,19 +18,70 @@ const TreasuryBalance = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from('posts')
-        .select('amount_paid_usd')
-        .eq('is_active', true);
-      if (data) {
-        const sum = data.reduce((acc, p) => acc + Number(p.amount_paid_usd || 0), 0);
-        setTotal(sum);
+    const fetchWalletValue = async () => {
+      try {
+        const rpc = 'https://mainnet.helius-rpc.com/?api-key=56557c79-1e29-43da-a73f-1b8f58e3140a';
+        
+        // Get all token accounts for platform wallet
+        const res = await fetch(rpc, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'treasury',
+            method: 'getTokenAccountsByOwner',
+            params: [
+              '3be48KfHNFmQwn9DQqfYYDhXPrs5xQVzgF9sNW6YQYzx',
+              { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+              { encoding: 'jsonParsed' }
+            ]
+          })
+        });
+
+        const data = await res.json();
+        const accounts = data?.result?.value || [];
+
+        // Get all mint addresses and amounts
+        const tokens = accounts
+          .map(a => ({
+            mint: a.account.data.parsed.info.mint,
+            amount: Number(a.account.data.parsed.info.tokenAmount.uiAmount) || 0
+          }))
+          .filter(t => t.amount > 0);
+
+        if (tokens.length === 0) { setTotal(0); setLoading(false); return; }
+
+        // Fetch prices from DexScreener
+        const mints = tokens.map(t => t.mint).join(',');
+        const priceRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mints}`);
+        const priceData = await priceRes.json();
+
+        // Build price map
+        const priceMap = {};
+        (priceData.pairs || []).forEach(pair => {
+          const mint = pair.baseToken?.address;
+          if (mint && !priceMap[mint]) {
+            priceMap[mint] = parseFloat(pair.priceUsd) || 0;
+          }
+        });
+
+        // Calculate total USD value
+        const totalValue = tokens.reduce((sum, t) => {
+          const price = priceMap[t.mint] || 0;
+          return sum + (t.amount * price);
+        }, 0);
+
+        setTotal(totalValue);
+      } catch (err) {
+        console.error('Treasury fetch error:', err);
+        setTotal(0);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    load();
-    const interval = setInterval(load, 30000);
+
+    fetchWalletValue();
+    const interval = setInterval(fetchWalletValue, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -38,7 +89,7 @@ const TreasuryBalance = () => {
     ? `$${(total / 1000000).toFixed(2)}M`
     : total >= 1000
     ? `$${(total / 1000).toFixed(2)}K`
-    : `$${total.toFixed(2)}`;
+    : `$${total?.toFixed(2)}`;
 
   return (
     <div style={{ marginTop: '20px', padding: '16px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -50,7 +101,7 @@ const TreasuryBalance = () => {
         {loading ? '...' : formatted}
       </div>
       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#333355', letterSpacing: '2px', textTransform: 'uppercase' }}>
-        All-time ad spend
+        Live wallet value
       </div>
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#c8a84b', opacity: 0.3 }} />
     </div>
