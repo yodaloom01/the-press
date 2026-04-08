@@ -289,7 +289,7 @@ export const Feed = () => {
       )}
 
       {/* Mobile Bottom Navigation */}
-      <div className="mobile-nav" style={{ display: 'none' }}>
+      <div className="mobile-nav">
         <div onClick={() => setSort('weighted')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'weighted' ? 'var(--accent)' : 'var(--muted)', fontSize: '10px' }}>
           <span style={{ fontSize: '20px' }}>📰</span>
           <span>Feed</span>
