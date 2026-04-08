@@ -115,7 +115,7 @@ export const Header = ({ onPressClick }) => {
         {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
           {publicKey && (
-            <button onClick={onPressClick} style={{ background: '#8b1a1a', color: '#fff', border: '1px solid #ff444444', padding: '7px 14px', fontFamily: "'Playfair Display', serif", fontSize: '13px', fontWeight: 700, borderRadius: '3px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button className="desktop-only" onClick={onPressClick} style={{ background: '#8b1a1a', color: '#fff', border: '1px solid #ff444444', padding: '7px 14px', fontFamily: "'Playfair Display', serif", fontSize: '13px', fontWeight: 700, borderRadius: '3px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               + Press
             </button>
           )}
