@@ -94,6 +94,9 @@ input, textarea { font-family: 'DM Sans', sans-serif; }
 @keyframes neonPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 .fade-in { animation: fadeIn 0.3s ease forwards; }
+.mobile-nav {
+  display: none;
+}
 
 /* ============================================================
    MOBILE RESPONSIVE — applies below 768px
@@ -140,5 +143,17 @@ input, textarea { font-family: 'DM Sans', sans-serif; }
   .desktop-only {
     display: none !important;
   }
-
+.mobile-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #08081a;
+    border-top: 1px solid var(--border);
+    padding: 8px 20px 20px;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 200;
+  }
 }
