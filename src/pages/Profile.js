@@ -88,15 +88,29 @@ Respond with ONLY the sentence. No quotes. No explanation.`;
   return (
     <div style={{ background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>
-        🤖 AI Trader Read
+        📊 FIELD ASSESSMENT
       </div>
       {loading ? (
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)' }}>
           Analyzing...
         </div>
       ) : aiSummary ? (
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', color: 'var(--text)', fontStyle: 'italic', borderLeft: '3px solid var(--accent)', paddingLeft: '12px', lineHeight: 1.5 }}>
-          "{aiSummary}"
+        <div style={{ 
+  fontFamily: "'DM Mono', monospace", 
+  fontSize: '12px', 
+  color: '#00ff88', 
+  background: '#000', 
+  padding: '12px', 
+  borderRadius: '4px',
+  border: '1px solid #00ff8844',
+  lineHeight: 1.8,
+  letterSpacing: '0.5px'
+}}>
+  <span style={{ color: '#555' }}>{'>'} INITIALIZING SCAN...</span><br/>
+  <span style={{ color: '#555' }}>{'>'} WALLET ANALYZED</span><br/>
+  <span style={{ color: '#00ff88' }}>{'>'} FIELD_ASSESSMENT.exe</span><br/>
+  <span style={{ color: '#fff' }}>{aiSummary}</span>
+</div>
         </div>
       ) : null}
     </div>
