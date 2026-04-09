@@ -44,7 +44,7 @@ const TraderProfile = ({ wallet, stats, profile }) => {
 
         const prompt = `You are writing a one line trader personality summary for someone on The Press — a Solana platform where people pay memecoins to boost posts.
 
-Write ONE punchy sentence (max 14 words) that captures their personality. Include whether they are loyal to specific coins or constantly chasing new ones. Be funny and sharp.
+Write 1-2 punchy sentences (max 25 words total) that capture their personality and loyalty score. Be funny, sharp and specific to their coins. No generic crypto talk.
 
 Their stats:
 - Total posts: ${totalPosts}
@@ -53,7 +53,7 @@ Their stats:
 - Unique coins used: ${uniqueCoins}
 - Coins used: ${stats.coinsUsed.join(', ')}
 - Favorite coin: $${topCoin}
-- Loyalty assessment: ${isLoyal ? `Loyal — keeps posting the same coins (${uniqueCoins} coins across ${totalPosts} posts)` : `Coin hopper — tries new coins constantly (${uniqueCoins} different coins across ${totalPosts} posts)`}
+- Loyalty score: ${Math.round((1 - loyaltyRatio) * 10)}/10 — ${isLoyal ? `Loyal maxi, keeps posting the same coins (${uniqueCoins} coins across ${totalPosts} posts)` : `Coin hopper, new coin every post (${uniqueCoins} different coins across ${totalPosts} posts)`}
 
 Respond with ONLY the sentence. No quotes. No explanation.`;
 
