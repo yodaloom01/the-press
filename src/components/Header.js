@@ -87,7 +87,7 @@ export const Header = ({ onPressClick }) => {
           <div style={styles.logo} onClick={() => navigate('/')} className="cursor-pointer">
             THE <span style={styles.logoSpan}>PRESS</span>
           </div>
-          <a href="https://x.com/ThePressSolana" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#888', fontSize: '13px', textDecoration: 'none' }}
+          <a href="https://x.com/thepressonsol" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#888', fontSize: '13px', textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.color = '#00ffff'}
             onMouseLeave={e => e.currentTarget.style.color = '#888'}
           >
