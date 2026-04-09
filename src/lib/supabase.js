@@ -6,6 +6,8 @@ const supabaseKey = 'sb_publishable_qhb9ZDMaQjIs6fiQzBcd6A_-B-ifxi3';
 console.log('URL:', process.env.REACT_APP_SUPABASE_URL);
 console.log('KEY START:', supabaseKey?.slice(0, 15));
 
+console.log('BIRDEYE:', process.env.REACT_APP_BIRDEYE_API_KEY?.slice(0, 10));
+
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ── Upload media ──────────────────────────────────────────────

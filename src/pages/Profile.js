@@ -10,6 +10,99 @@ import { clearNameCache } from '../hooks/useSolanaName';
 import { FollowListModal } from '../components/FollowListModal';
 import toast from 'react-hot-toast';
 
+const TraderProfile = ({ wallet, stats, profile }) => {
+  const [aiSummary, setAiSummary] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAI = async () => {
+      if (!stats.totalPosts) { setLoading(false); return; }
+      try {
+        // Check cache first
+        const { data: cached } = await supabase
+          .from('trader_profiles')
+          .select('*')
+          .eq('wallet_address', wallet)
+          .single();
+
+        const isStale = !cached ||
+          (new Date() - new Date(cached.updated_at)) > 24 * 60 * 60 * 1000;
+
+        if (cached && !isStale) {
+          setAiSummary(cached.ai_summary);
+          setLoading(false);
+          return;
+        }
+
+        // Calculate loyalty metrics
+        const uniqueCoins = stats.coinsUsed.length;
+        const totalPosts = stats.totalPosts;
+        const avgSpendPerPost = stats.totalPaid / totalPosts;
+        const topCoin = stats.coinsUsed[0] || 'unknown';
+        const loyaltyRatio = uniqueCoins / totalPosts;
+        const isLoyal = loyaltyRatio <= 0.4;
+
+        const prompt = `You are writing a one line trader personality summary for someone on The Press — a Solana platform where people pay memecoins to boost posts.
+
+Write ONE punchy sentence (max 14 words) that captures their personality. Include whether they are loyal to specific coins or constantly chasing new ones. Be funny and sharp.
+
+Their stats:
+- Total posts: ${totalPosts}
+- Total spent: $${stats.totalPaid.toFixed(2)}
+- Average spend per post: $${avgSpendPerPost.toFixed(2)}
+- Unique coins used: ${uniqueCoins}
+- Coins used: ${stats.coinsUsed.join(', ')}
+- Favorite coin: $${topCoin}
+- Loyalty assessment: ${isLoyal ? `Loyal — keeps posting the same coins (${uniqueCoins} coins across ${totalPosts} posts)` : `Coin hopper — tries new coins constantly (${uniqueCoins} different coins across ${totalPosts} posts)`}
+
+Respond with ONLY the sentence. No quotes. No explanation.`;
+
+       const aiRes = await fetch('/api/ai-summary', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt })
+});
+        const aiData = await aiRes.json();
+        const summary = aiData.content?.[0]?.text || '';
+
+        // Save to cache
+        await supabase.from('trader_profiles').upsert({
+          wallet_address: wallet,
+          ai_summary: summary,
+          updated_at: new Date().toISOString(),
+        });
+
+        setAiSummary(summary);
+      } catch (err) {
+        console.error('AI summary error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAI();
+  }, [wallet, stats]);
+
+  if (!stats.totalPosts) return null;
+
+  return (
+    <div style={{ background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>
+        🤖 AI Trader Read
+      </div>
+      {loading ? (
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)' }}>
+          Analyzing...
+        </div>
+      ) : aiSummary ? (
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', color: 'var(--text)', fontStyle: 'italic', borderLeft: '3px solid var(--accent)', paddingLeft: '12px', lineHeight: 1.5 }}>
+          "{aiSummary}"
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 export const Profile = () => {
   const { wallet } = useParams();
   const { publicKey } = useWallet();
@@ -239,8 +332,9 @@ export const Profile = () => {
             </div>
           </div>
         )}
-
-        {/* Posts */}
+  {/* Trader Profile */}
+        <TraderProfile wallet={wallet} stats={stats} profile={profile} />        
+{/* Posts */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace", fontSize: '13px' }}>Loading posts...</div>
         ) : posts.length === 0 ? (
