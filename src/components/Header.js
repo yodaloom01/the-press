@@ -61,8 +61,7 @@ export const Header = ({ onPressClick }) => {
       </div>
 
       {/* Main header */}
-      <header style={{ background: '#000', color: '#00ff00', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', position: 'sticky', top: 0, zIndex: 100, borderBottom: '3px solid #ff00ff' }}>
-
+      <header style={{ background: '#000', color: '#00ff00', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', position: 'sticky', top: 0, zIndex: 100, borderBottom: '3px solid #ff00ff', overflow: 'hidden' }}>
         {/* Left — status */}
         <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', color: '#00ffff', lineHeight: 1.8, flexShrink: 0 }} className="desktop-only">
           <div>&gt; CONNECTING TO SOLANA...</div>
@@ -84,7 +83,7 @@ export const Header = ({ onPressClick }) => {
         </div>
 
         {/* Right — buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {publicKey && (
             <button onClick={onPressClick}
               style={{ background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '5px 14px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
