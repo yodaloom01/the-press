@@ -324,30 +324,21 @@ export const Feed = () => {
         <PressModal onClose={() => setShowModal(false)} onSuccess={handlePostSuccess} />
       )}
 
-      {/* Mobile Bottom Nav */}
-      <div className="mobile-nav">
-        <div onClick={() => setSort('weighted')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'weighted' ? '#ff00ff' : '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
-          <span style={{ fontSize: '18px' }}>📰</span>
-          <span>FEED</span>
-        </div>
-        <div onClick={() => setSort('trending')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'trending' ? '#ff00ff' : '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
-          <span style={{ fontSize: '18px' }}>🔥</span>
-          <span>HOT</span>
-        </div>
-        {publicKey && (
-          <div onClick={() => setShowModal(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
-            <div style={{ width: '44px', height: '44px', background: '#ff0000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginTop: '-20px', border: '3px solid #ffff00' }}>+</div>
-            <span style={{ color: '#555' }}>PRESS</span>
-          </div>
-        )}
-        <div onClick={() => navigate('/search')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
-          <span style={{ fontSize: '18px' }}>🔍</span>
-          <span>FIND</span>
-        </div>
-        <div onClick={() => publicKey && navigate(`/profile/${publicKey.toBase58()}`)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
-          <span style={{ fontSize: '18px' }}>👤</span>
-          <span>ME</span>
-        </div>
+     {/* Mobile Bottom Nav */}
+      <div className="mobile-nav" style={{ background: '#c0c0c0', borderTop: '3px solid #fff', padding: '4px 8px', gap: '4px' }}>
+        {[
+          { icon: '📰', label: 'FEED', action: () => setSort('weighted') },
+          { icon: '🔥', label: 'HOT', action: () => setSort('trending') },
+          { icon: '+', label: 'PRESS', action: () => setShowModal(true), isPress: true },
+          { icon: '🔍', label: 'FIND', action: () => navigate('/search') },
+          { icon: '👤', label: 'ME', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
+        ].map((item) => (
+          <button key={item.label} onClick={item.action}
+            style={{ background: item.isPress ? '#ff0000' : '#c0c0c0', color: item.isPress ? '#ffff00' : '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '4px 6px', fontFamily: "'Courier New', monospace", fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}>
+            <span style={{ fontSize: '16px' }}>{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
       </div>
     </>
   );
