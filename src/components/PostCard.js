@@ -357,6 +357,7 @@ export const PostCard = ({ post, onLike }) => {
     if (window.confirm('Delete this post? No refunds.')) {
       await supabase.from('posts').update({ is_active: false }).eq('id', post.id);
       toast.success('Post deleted');
+      if (onDelete) onDelete(post.id);
     }
   }} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#ff4466', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Mono', monospace", padding: 0 }}>
     🗑 Delete

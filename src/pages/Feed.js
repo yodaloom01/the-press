@@ -270,7 +270,7 @@ export const Feed = () => {
             </div>
           ) : (
             posts.map((post) => (
-              <PostCard key={post.id} post={post} onLike={handleLike} />
+              <PostCard key={post.id} post={post} onLike={handleLike} onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))} />
             ))
           )}
         </main>
