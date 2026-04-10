@@ -128,7 +128,7 @@ const CommentItem = ({ comment, walletAddress, postId, postOwnerWallet }) => {
   );
 };
 
-export const PostCard = ({ post, onLike }) => {
+export const PostCard = ({ post, onLike, onDelete }) => {
   const { publicKey } = useWallet();
   const walletAddress = publicKey?.toBase58();
   const [liked, setLiked] = useState(false);
@@ -147,6 +147,7 @@ export const PostCard = ({ post, onLike }) => {
   const [quotedPost, setQuotedPost] = useState(null);
   const impressionRecorded = useRef(false);
   const cardRef = useRef();
+
 
   useEffect(() => {
     if (post.quote_of) {
