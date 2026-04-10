@@ -61,42 +61,40 @@ export const Header = ({ onPressClick }) => {
       </div>
 
       {/* Main header */}
-      <header style={{ background: '#000', color: '#00ff00', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', position: 'sticky', top: 0, zIndex: 100, borderBottom: '3px solid #ff00ff', overflow: 'hidden' }}>
-        {/* Left — status */}
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', color: '#00ffff', lineHeight: 1.8, flexShrink: 0 }} className="desktop-only">
-          <div>&gt; CONNECTING TO SOLANA...</div>
-          <div>&gt; CHAIN ID: 41454</div>
-          <div>&gt; STATUS: <span style={{ color: '#00ff00', animation: 'blink 1s infinite', display: 'inline-block' }}>ONLINE</span></div>
-        </div>
+<div style={{ background: '#000', borderBottom: '3px solid #ff00ff', position: 'sticky', top: 0, zIndex: 100 }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 16px', maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', color: '#00ffff', lineHeight: 1.8, flexShrink: 0 }} className="desktop-only">
+            <div>&gt; CONNECTING TO SOLANA...</div>
+            <div>&gt; CHAIN ID: 41454</div>
+            <div>&gt; STATUS: <span className="blink-online">ONLINE</span></div>
+          </div>
 
-        {/* Center — logo */}
-        <div onClick={() => navigate('/')} style={{ cursor: 'pointer', textAlign: 'center', flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 900, color: '#ff00ff', textShadow: '4px 4px #00ffff', letterSpacing: '6px', lineHeight: 1 }}>
-            THE PRESS
+          <div onClick={() => navigate('/')} style={{ cursor: 'pointer', textAlign: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 900, color: '#ff00ff', textShadow: '4px 4px #00ffff', letterSpacing: '6px', lineHeight: 1 }}>
+              THE PRESS
+            </div>
+            <div style={{ fontSize: '9px', color: '#ff00ff', letterSpacing: '4px', animation: 'blink 1s infinite', marginTop: '2px' }}>
+              * ON SOLANA *
+            </div>
+            <div style={{ fontSize: '9px', color: '#00ffff', letterSpacing: '3px', animation: 'blink 1.5s infinite' }}>
+              PAY TO TREND &gt;&gt; MEMECOINS ONLY
+            </div>
           </div>
-          <div style={{ fontSize: '9px', color: '#ff00ff', letterSpacing: '4px', animation: 'blink 1s infinite', marginTop: '2px' }}>
-            * ON SOLANA *
-          </div>
-          <div style={{ fontSize: '9px', color: '#00ffff', letterSpacing: '3px', animation: 'blink 1.5s infinite' }}>
-            PAY TO TREND &gt;&gt; MEMECOINS ONLY
-          </div>
-        </div>
 
-        {/* Right — buttons */}
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {publicKey && (
-            <button onClick={onPressClick}
-              style={{ background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '5px 14px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
-              &gt;&gt; + PRESS POST &lt;&lt;
-            </button>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <NotificationBell />
-            <WalletMultiButton />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', flexShrink: 0 }}>
+            {publicKey && (
+              <button onClick={onPressClick}
+                style={{ background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '5px 14px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
+                &gt;&gt; + PRESS POST &lt;&lt;
+              </button>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <NotificationBell />
+              <WalletMultiButton />
+            </div>
           </div>
-        </div>
-      </header>
-
+        </header>
+      </div>
 
     </>
   );

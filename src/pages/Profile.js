@@ -8,113 +8,72 @@ import { supabase, fetchProfile, updateProfile, uploadAvatar, followUser, unfoll
 import { shortWallet, formatAmount } from '../lib/solana';
 import { clearNameCache } from '../hooks/useSolanaName';
 import { FollowListModal } from '../components/FollowListModal';
+import { WalletName } from '../components/WalletName';
 import toast from 'react-hot-toast';
 
-const TraderProfile = ({ wallet, stats, profile }) => {
-  const [aiSummary, setAiSummary] = useState('');
-  const [loading, setLoading] = useState(true);
+const mono = { fontFamily: "'Courier New', monospace" };
+
+const ReactionBar = ({ targetWallet, viewerWallet }) => {
+  const [reactions, setReactions] = useState({ '🚀': 0, '✅': 0, '💩': 0, '🖕': 0 });
+  const [myReaction, setMyReaction] = useState(null);
 
   useEffect(() => {
-    const fetchAI = async () => {
-      if (!stats.totalPosts) { setLoading(false); return; }
-      try {
-        // Check cache first
-        const { data: cached } = await supabase
-          .from('trader_profiles')
-          .select('*')
-          .eq('wallet_address', wallet)
-          .single();
-
-        const isStale = !cached ||
-          (new Date() - new Date(cached.updated_at)) > 24 * 60 * 60 * 1000;
-
-        if (cached && !isStale) {
-          setAiSummary(cached.ai_summary);
-          setLoading(false);
-          return;
+    const load = async () => {
+      const { data } = await supabase
+        .from('profile_reactions')
+        .select('emoji, reactor_wallet')
+        .eq('target_wallet', targetWallet);
+      
+      if (data) {
+        const counts = { '🚀': 0, '✅': 0, '💩': 0, '🖕': 0 };
+        data.forEach(r => { if (counts[r.emoji] !== undefined) counts[r.emoji]++; });
+        setReactions(counts);
+        if (viewerWallet) {
+          const mine = data.find(r => r.reactor_wallet === viewerWallet);
+          if (mine) setMyReaction(mine.emoji);
         }
-
-        // Calculate loyalty metrics
-        const uniqueCoins = stats.coinsUsed.length;
-        const totalPosts = stats.totalPosts;
-        const avgSpendPerPost = stats.totalPaid / totalPosts;
-        const topCoin = stats.coinsUsed[0] || 'unknown';
-        const loyaltyRatio = uniqueCoins / totalPosts;
-        const isLoyal = loyaltyRatio <= 0.4;
-
-        const prompt = `You are writing a one line trader personality summary for someone on The Press — a Solana platform where people pay memecoins to boost posts.
-
-Write 1-2 punchy sentences (max 25 words total) that capture their personality and loyalty score. Be funny, sharp and specific to their coins. No generic crypto talk.
-
-Their stats:
-- Total posts: ${totalPosts}
-- Total spent: $${stats.totalPaid.toFixed(2)}
-- Average spend per post: $${avgSpendPerPost.toFixed(2)}
-- Unique coins used: ${uniqueCoins}
-- Coins used: ${stats.coinsUsed.join(', ')}
-- Favorite coin: $${topCoin}
-- Loyalty score: ${Math.round((1 - loyaltyRatio) * 10)}/10 — ${isLoyal ? `Loyal maxi, keeps posting the same coins (${uniqueCoins} coins across ${totalPosts} posts)` : `Coin hopper, new coin every post (${uniqueCoins} different coins across ${totalPosts} posts)`}
-
-Respond with ONLY the sentence. No quotes. No explanation.`;
-
-       const aiRes = await fetch('/api/ai-summary', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ prompt })
-});
-        const aiData = await aiRes.json();
-        const summary = aiData.content?.[0]?.text || '';
-
-        // Save to cache
-        await supabase.from('trader_profiles').upsert({
-          wallet_address: wallet,
-          ai_summary: summary,
-          updated_at: new Date().toISOString(),
-        });
-
-        setAiSummary(summary);
-      } catch (err) {
-        console.error('AI summary error:', err);
-      } finally {
-        setLoading(false);
       }
     };
+    load();
+  }, [targetWallet, viewerWallet]);
 
-    fetchAI();
-  }, [wallet, stats]);
+  const handleReact = async (emoji) => {
+    if (!viewerWallet || viewerWallet === targetWallet) return;
+    
+    const prev = myReaction;
+    setMyReaction(emoji);
+    setReactions(r => ({
+      ...r,
+      ...(prev ? { [prev]: Math.max(0, r[prev] - 1) } : {}),
+      [emoji]: r[emoji] + 1,
+    }));
 
-  if (!stats.totalPosts) return null;
+    await supabase.from('profile_reactions').upsert({
+      reactor_wallet: viewerWallet,
+      target_wallet: targetWallet,
+      emoji,
+    }, { onConflict: 'reactor_wallet,target_wallet' });
+  };
 
   return (
-    <div style={{ background: 'var(--ink)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>
-        📊 FIELD ASSESSMENT
+    <div style={{ border: '2px solid #ff00ff', background: '#000', padding: '8px', marginBottom: '12px' }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', marginBottom: '8px' }}>
+        ** PRESS RATING **
       </div>
-      {loading ? (
-        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)' }}>
-          Analyzing...
-        </div>
-      ) : aiSummary ? (
-        <div style={{ 
-          fontFamily: "'DM Mono', monospace", 
-          fontSize: '12px', 
-          color: '#00ff88', 
-          background: '#000', 
-          padding: '12px', 
-          borderRadius: '4px',
-          border: '1px solid #00ff8844',
-          lineHeight: 1.8,
-          letterSpacing: '0.5px'
-        }}>
-          <span style={{ color: '#555' }}>{'> INITIALIZING SCAN...'}</span><br/>
-          <span style={{ color: '#555' }}>{'> WALLET ANALYZED'}</span><br/>
-          <span style={{ color: '#00ff88' }}>{'> FIELD_ASSESSMENT.exe'}</span><br/>
-          <span style={{ color: '#fff' }}>{aiSummary}</span>
-        </div>
-      ) : null}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {['🚀', '✅', '💩', '🖕'].map(emoji => (
+          <button key={emoji} onClick={() => handleReact(emoji)}
+            style={{ background: myReaction === emoji ? '#ff00ff' : '#c0c0c0', color: myReaction === emoji ? '#fff' : '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '4px 10px', fontFamily: "'Courier New', monospace", fontSize: '16px', cursor: viewerWallet && viewerWallet !== targetWallet ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {emoji} <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{reactions[emoji]}</span>
+          </button>
+        ))}
+      </div>
+      {!viewerWallet && <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#555', marginTop: '6px' }}>&gt; CONNECT WALLET TO RATE</div>}
+      {viewerWallet === targetWallet && <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#555', marginTop: '6px' }}>&gt; CANNOT RATE YOURSELF</div>}
     </div>
   );
 };
+
 
 export const Profile = () => {
   const { wallet } = useParams();
@@ -137,7 +96,7 @@ export const Profile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [followModal, setFollowModal] = useState(null);
   const [showPressModal, setShowPressModal] = useState(false);
-  const [userNumber, setUserNumber] = useState(null); // 'followers' | 'following' | null
+  const [userNumber, setUserNumber] = useState(null);
   const [mutuals, setMutuals] = useState([]);
 
   useEffect(() => {
@@ -154,23 +113,13 @@ export const Profile = () => {
       if (publicKey && !isOwner) {
         const following = await isFollowing(publicKey.toBase58(), wallet);
         setFollowing(following);
-      // Fetch mutuals
         const { data: myFollowing } = await supabase
-          .from('follows')
-          .select('following_wallet')
-          .eq('follower_wallet', publicKey.toBase58());
-        
+          .from('follows').select('following_wallet').eq('follower_wallet', publicKey.toBase58());
         if (myFollowing && myFollowing.length > 0) {
           const myFollowingWallets = myFollowing.map(f => f.following_wallet);
           const { data: mutualData } = await supabase
-            .from('follows')
-            .select('follower_wallet')
-            .eq('following_wallet', wallet)
-            .in('follower_wallet', myFollowingWallets);
-          
-          if (mutualData && mutualData.length > 0) {
-            setMutuals(mutualData.map(m => m.follower_wallet));
-          }
+            .from('follows').select('follower_wallet').eq('following_wallet', wallet).in('follower_wallet', myFollowingWallets);
+          if (mutualData && mutualData.length > 0) setMutuals(mutualData.map(m => m.follower_wallet));
         }
       }
       if (postsData) {
@@ -223,9 +172,7 @@ export const Profile = () => {
     setSaving(true);
     try {
       let avatarUrl = profile?.avatar_url;
-      if (avatarFile) {
-        avatarUrl = await uploadAvatar(avatarFile, wallet);
-      }
+      if (avatarFile) avatarUrl = await uploadAvatar(avatarFile, wallet);
       const result = await updateProfile(wallet, {
         username: editUsername.trim() || undefined,
         bio: editBio.trim() || undefined,
@@ -248,161 +195,188 @@ export const Profile = () => {
   const displayName = profile?.username ? `@${profile.username}` : shortWallet(wallet);
   const avatarUrl = avatarPreview || profile?.avatar_url;
 
-  const statCard = (label, value) => (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px 20px', textAlign: 'center' }}>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
-      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 700 }}>{value}</div>
+  const statCard = (label, value, color = '#00ff00') => (
+    <div style={{ background: '#000', border: '2px solid #00ffff', padding: '10px', textAlign: 'center' }}>
+      <div style={{ ...mono, fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', marginBottom: '6px', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ ...mono, fontSize: '22px', fontWeight: 900, color }}>{value}</div>
     </div>
   );
 
   return (
     <>
       <Header onPressClick={() => setShowPressModal(true)} />
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '32px 20px', position: 'relative', zIndex: 1 }}>
+      <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
 
-        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)', marginBottom: '20px', textDecoration: 'none' }}>
-          ← Back to The Press
+      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '16px', position: 'relative', zIndex: 1 }}>
+
+        {/* Back link */}
+        <Link to="/" style={{ ...mono, fontSize: '11px', color: '#00ffff', display: 'inline-block', marginBottom: '12px', textDecoration: 'none' }}>
+          &lt;-- BACK TO THE PRESS
         </Link>
 
-        {/* Profile header */}
-        <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          {/* Avatar */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'var(--press)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', overflow: 'hidden', border: '2px solid var(--border)' }}>
-              {avatarUrl ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🗞️'}
+        {/* Profile window */}
+        <div style={{ border: '2px solid #00ffff', background: '#000', marginBottom: '12px' }}>
+          {/* Win95 title bar */}
+          <div style={{ background: '#000080', padding: '3px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #00ffff' }}>
+            <span style={{ ...mono, fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>
+              PRESSER_PROFILE.EXE — {displayName}
+            </span>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {['_', 'X'].map(b => (
+                <div key={b} style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{b}</div>
+              ))}
             </div>
-            {editing && (
-              <>
-                <button onClick={() => fileRef.current.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>
-                  ✏️
-                </button>
-                <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
-              </>
-            )}
           </div>
 
-          {/* Name and bio */}
-          <div style={{ flex: 1 }}>
-            {editing ? (
-              <>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', background: 'var(--paper2)', border: '1px solid var(--border)', borderRadius: '4px 0 0 4px', padding: '0 8px', fontSize: '13px', color: 'var(--muted)', borderRight: 'none' }}>@</div>
-                  <input
-                    value={editUsername}
-                    onChange={e => setEditUsername(e.target.value.replace(/[^a-z0-9_]/gi, '').toLowerCase())}
-                    placeholder="username"
-                    maxLength={20}
-                    style={{ flex: 1, padding: '8px 10px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0 4px 4px 0', fontSize: '13px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Mono', monospace" }}
-                  />
-                </div>
-                <textarea
-                  value={editBio}
-                  onChange={e => setEditBio(e.target.value)}
-                  placeholder="Bio (optional)"
-                  maxLength={160}
-                  style={{ width: '100%', padding: '8px 10px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '13px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Sans', sans-serif", resize: 'none', height: '60px', boxSizing: 'border-box' }}
-                />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button onClick={handleSave} disabled={saving} style={{ background: 'var(--accent)', color: 'var(--press)', border: 'none', padding: '7px 16px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 500, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
-                    {saving ? 'Saving...' : 'Save'}
+          <div style={{ padding: '12px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+            {/* Avatar */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ width: '72px', height: '72px', border: '3px solid #ff00ff', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+                {avatarUrl ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🗞️'}
+              </div>
+              {editing && (
+                <>
+                  <button onClick={() => fileRef.current.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: '20px', height: '20px', background: '#ff00ff', border: 'none', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    ✏️
                   </button>
-                  <button onClick={() => setEditing(false)} style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--muted)', padding: '7px 16px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: 700 }}>{displayName}</div>
-                {userNumber && (
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: '#9944ff', marginTop: '2px', letterSpacing: '1px' }}>
-                    Presser #{userNumber}
+                  <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+                </>
+              )}
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1 }}>
+              {editing ? (
+                <>
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                    <span style={{ ...mono, fontSize: '12px', color: '#00ffff', padding: '4px 6px', background: '#000', border: '1px solid #00ffff' }}>@</span>
+                    <input value={editUsername}
+                      onChange={e => setEditUsername(e.target.value.replace(/[^a-z0-9_]/gi, '').toLowerCase())}
+                      placeholder="USERNAME"
+                      maxLength={20}
+                      style={{ flex: 1, padding: '4px 8px', background: '#000', border: '2px solid #00ffff', ...mono, fontSize: '12px', color: '#00ff00', outline: 'none' }} />
                   </div>
-                )}
-                {profile?.bio && <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px', lineHeight: 1.5 }}>{profile.bio}</div>}
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: 'var(--muted)', marginTop: '4px', opacity: 0.6 }}>{wallet}</div>
-                {isOwner && (
-                  <button onClick={startEditing} style={{ marginTop: '8px', background: 'none', border: '1px solid var(--border)', color: 'var(--muted)', padding: '5px 12px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.5px' }}>
-                    ✏️ Edit Profile
-                  </button>
-                )}
-                {!isOwner && publicKey && (
-                  <button onClick={handleFollow} disabled={followLoading} style={{ marginTop: '8px', background: following ? 'none' : 'var(--accent)', color: following ? 'var(--muted)' : 'var(--press)', border: `1px solid ${following ? 'var(--border)' : 'var(--accent)'}`, padding: '5px 16px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '10px', cursor: 'pointer', fontWeight: 500 }}>
-                    {followLoading ? '...' : following ? 'Following' : 'Follow'}
-                  </button>
-                )}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
-                  <button onClick={() => setFollowModal('followers')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)' }}>
-                    <span style={{ color: 'var(--text)', fontWeight: 600 }}>{followCounts.followers}</span> followers
-                  </button>
-                  <button onClick={() => setFollowModal('following')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--muted)' }}>
-                    <span style={{ color: 'var(--text)', fontWeight: 600 }}>{followCounts.following}</span> following
-                  </button>
-                </div>
-             {mutuals.length > 0 && (
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: 'var(--muted)', marginTop: '6px' }}>
-                    👥 Followed by{' '}
-                    {mutuals.slice(0, 2).map((m, i) => (
-                      <span key={m}>
-                        <Link to={`/profile/${m}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-                          {shortWallet(m)}
-                        </Link>
-                        {i < Math.min(mutuals.length, 2) - 1 ? ', ' : ''}
-                      </span>
-                    ))}
-                    {mutuals.length > 2 && ` and ${mutuals.length - 2} others you follow`}
+                  <textarea value={editBio} onChange={e => setEditBio(e.target.value)}
+                    placeholder="BIO (OPTIONAL)"
+                    maxLength={160}
+                    style={{ width: '100%', padding: '6px 8px', background: '#000', border: '2px solid #00ffff', ...mono, fontSize: '11px', color: '#00ff00', outline: 'none', resize: 'none', height: '50px', boxSizing: 'border-box' }} />
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                    <button onClick={handleSave} disabled={saving}
+                      style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '3px 12px', ...mono, fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+                      {saving ? 'SAVING...' : '[SAVE]'}
+                    </button>
+                    <button onClick={() => setEditing(false)}
+                      style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '3px 12px', ...mono, fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>
+                      [CANCEL]
+                    </button>
                   </div>
-                )}
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <div style={{ ...mono, fontSize: '18px', fontWeight: 900, color: '#ff00ff', textShadow: '2px 2px #00ffff' }}>{displayName}</div>
+                  {userNumber && (
+                    <div style={{ ...mono, fontSize: '9px', color: '#ffff00', letterSpacing: '2px', animation: 'blink 2s infinite', marginTop: '2px' }}>
+                      ** PRESSER #{userNumber} **
+                    </div>
+                  )}
+                  {profile?.bio && <div style={{ ...mono, fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: 1.5 }}>&gt; {profile.bio}</div>}
+                  <div style={{ ...mono, fontSize: '9px', color: '#333', marginTop: '4px' }}>{wallet}</div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                    {isOwner && (
+                      <button onClick={startEditing}
+                        style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 10px', ...mono, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        [EDIT PROFILE]
+                      </button>
+                    )}
+                    {!isOwner && publicKey && (
+                      <button onClick={handleFollow} disabled={followLoading}
+                        style={{ background: following ? '#c0c0c0' : '#ff0000', color: following ? '#000' : '#ffff00', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 10px', ...mono, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        {followLoading ? '...' : following ? '[FOLLOWING]' : '[+ FOLLOW]'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <button onClick={() => setFollowModal('followers')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, ...mono, fontSize: '10px', color: '#888' }}>
+                      <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{followCounts.followers}</span> FOLLOWERS
+                    </button>
+                    <button onClick={() => setFollowModal('following')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, ...mono, fontSize: '10px', color: '#888' }}>
+                      <span style={{ color: '#00ff00', fontWeight: 'bold' }}>{followCounts.following}</span> FOLLOWING
+                    </button>
+                  </div>
+
+                  {mutuals.length > 0 && (
+                    <div style={{ ...mono, fontSize: '10px', color: '#888', marginTop: '6px' }}>
+                      &gt; FOLLOWED BY{' '}
+                      {mutuals.slice(0, 2).map((m, i) => (
+                        <span key={m}>
+                          <Link to={`/profile/${m}`} style={{ color: '#00ffff', textDecoration: 'none' }}>
+                            <WalletName address={m} />
+                          </Link>
+                          {i < Math.min(mutuals.length, 2) - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                      {mutuals.length > 2 && ` AND ${mutuals.length - 2} OTHERS`}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-          {statCard('Posts Pressed', stats.totalPosts)}
-          {statCard('Total Spent', `$${stats.totalPaid.toFixed(2)}`)}
-          {statCard('Total Views', formatAmount(stats.totalViews))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '12px' }}>
+          {statCard('POSTS PRESSED', stats.totalPosts, '#00ff00')}
+          {statCard('TOTAL SPENT', `$${stats.totalPaid.toFixed(2)}`, '#ffff00')}
+          {statCard('TOTAL VIEWS', formatAmount(stats.totalViews), '#ff00ff')}
         </div>
 
         {/* Coins used */}
         {stats.coinsUsed.length > 0 && (
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--muted)', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Coins Used to Press</div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ border: '2px solid #ff00ff', background: '#000', padding: '8px', marginBottom: '12px' }}>
+            <div style={{ ...mono, fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', marginBottom: '8px' }}>** COINS USED TO PRESS **</div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {stats.coinsUsed.map(coin => (
-                <div key={coin} style={{ background: 'var(--ink)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 500 }}>
-                  🪙 ${coin}
+                <div key={coin} style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '3px 8px', ...mono, fontSize: '10px', fontWeight: 'bold' }}>
+                  ** ${coin} **
                 </div>
               ))}
             </div>
           </div>
         )}
-  {/* Trader Profile */}
-        <TraderProfile wallet={wallet} stats={stats} profile={profile} />        
-{/* Posts */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace", fontSize: '13px' }}>Loading posts...</div>
-        ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>No posts pressed yet.</div>
-        ) : (
-         posts.map((post) => <PostCard key={post.id} post={post} onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))} />)
-        )}
+{/* Reaction Bar */}
+<ReactionBar targetWallet={wallet} viewerWallet={publicKey?.toBase58()} />
+
+        {/* Posts */}
+        <div style={{ border: '2px solid #00ffff', background: '#000', marginBottom: '12px' }}>
+          <div style={{ background: '#000080', padding: '2px 8px', borderBottom: '1px solid #00ffff' }}>
+            <span style={{ ...mono, fontSize: '10px', color: '#ffff00', fontWeight: 'bold' }}>** PRESSED POSTS **</span>
+          </div>
+          <div style={{ padding: '8px' }}>
+            {loading ? (
+              <div style={{ ...mono, fontSize: '12px', color: '#00ff00', padding: '20px', textAlign: 'center', animation: 'blink 1s infinite' }}>
+                &gt; LOADING POSTS..._
+              </div>
+            ) : posts.length === 0 ? (
+              <div style={{ ...mono, fontSize: '11px', color: '#444', padding: '20px', textAlign: 'center' }}>
+                &gt; NO POSTS PRESSED YET
+              </div>
+            ) : (
+              posts.map((post) => <PostCard key={post.id} post={post} onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))} />)
+            )}
+          </div>
+        </div>
       </div>
 
       {followModal && (
-        <FollowListModal
-          wallet={wallet}
-          type={followModal}
+        <FollowListModal wallet={wallet} type={followModal}
           count={followModal === 'followers' ? followCounts.followers : followCounts.following}
-          onClose={() => setFollowModal(null)}
-        />
+          onClose={() => setFollowModal(null)} />
       )}
       {showPressModal && (
-        <PressModal
-          onClose={() => setShowPressModal(false)}
-          onSuccess={() => setShowPressModal(false)}
-        />
+        <PressModal onClose={() => setShowPressModal(false)} onSuccess={() => setShowPressModal(false)} />
       )}
     </>
   );
