@@ -138,6 +138,7 @@ export const Profile = () => {
   const [followModal, setFollowModal] = useState(null);
   const [showPressModal, setShowPressModal] = useState(false);
   const [userNumber, setUserNumber] = useState(null); // 'followers' | 'following' | null
+  const [mutuals, setMutuals] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -153,6 +154,24 @@ export const Profile = () => {
       if (publicKey && !isOwner) {
         const following = await isFollowing(publicKey.toBase58(), wallet);
         setFollowing(following);
+      // Fetch mutuals
+        const { data: myFollowing } = await supabase
+          .from('follows')
+          .select('following_wallet')
+          .eq('follower_wallet', publicKey.toBase58());
+        
+        if (myFollowing && myFollowing.length > 0) {
+          const myFollowingWallets = myFollowing.map(f => f.following_wallet);
+          const { data: mutualData } = await supabase
+            .from('follows')
+            .select('follower_wallet')
+            .eq('following_wallet', wallet)
+            .in('follower_wallet', myFollowingWallets);
+          
+          if (mutualData && mutualData.length > 0) {
+            setMutuals(mutualData.map(m => m.follower_wallet));
+          }
+        }
       }
       if (postsData) {
         setPosts(postsData);
@@ -320,6 +339,20 @@ export const Profile = () => {
                     <span style={{ color: 'var(--text)', fontWeight: 600 }}>{followCounts.following}</span> following
                   </button>
                 </div>
+             {mutuals.length > 0 && (
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: 'var(--muted)', marginTop: '6px' }}>
+                    👥 Followed by{' '}
+                    {mutuals.slice(0, 2).map((m, i) => (
+                      <span key={m}>
+                        <Link to={`/profile/${m}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
+                          {shortWallet(m)}
+                        </Link>
+                        {i < Math.min(mutuals.length, 2) - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                    {mutuals.length > 2 && ` and ${mutuals.length - 2} others you follow`}
+                  </div>
+                )}
               </>
             )}
           </div>
