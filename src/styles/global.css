@@ -109,16 +109,7 @@ button:active {
   font-weight: bold !important;
 }
 
-@media (max-width: 768px) {
-  .feed-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .feed-grid aside {
-    display: none !important;
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 430px) {
   .feed-grid {
     grid-template-columns: 1fr !important;
   }
