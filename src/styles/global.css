@@ -108,3 +108,12 @@ button:active {
   letter-spacing: 1px !important;
   font-weight: bold !important;
 }
+
+@media (max-width: 768px) {
+  .feed-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .feed-grid aside {
+    display: none !important;
+  }
+}

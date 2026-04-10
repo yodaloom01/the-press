@@ -154,7 +154,7 @@ export const Feed = () => {
     <>
       <Header onPressClick={() => setShowModal(true)} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 220px', maxWidth: '1100px', margin: '0 auto', minHeight: 'calc(100vh - 84px)', position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 220px', maxWidth: '1100px', margin: '0 auto', minHeight: 'calc(100vh - 84px)', position: 'relative', zIndex: 1 }} className="feed-grid">
 
         {/* Left Sidebar */}
         <aside style={{ padding: '12px 8px', borderRight: '2px solid #00ffff', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
