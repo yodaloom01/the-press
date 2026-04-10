@@ -1,8 +1,3 @@
-// ============================================================
-// THE PRESS — Feed Page
-// Main page: sidebar, post feed, trending panel
-// ============================================================
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +8,31 @@ import { fetchPosts, subscribeToNewPosts, fetchFollowingPosts, supabase, getTota
 import { shortWallet } from '../lib/solana';
 import { useCoinPrices } from '../hooks/useCoinPrices';
 
+const win95Box = {
+  background: '#000',
+  border: '2px solid #00ffff',
+  padding: '8px',
+  marginBottom: '8px',
+};
+
+const win95Btn = {
+  background: '#c0c0c0',
+  color: '#000',
+  borderTop: '2px solid #fff',
+  borderLeft: '2px solid #fff',
+  borderBottom: '2px solid #444',
+  borderRight: '2px solid #444',
+  padding: '3px 10px',
+  fontFamily: "'Courier New', monospace",
+  fontSize: '11px',
+  cursor: 'pointer',
+  letterSpacing: '1px',
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  marginBottom: '2px',
+};
+
 const TreasuryBalance = () => {
   const [total, setTotal] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,96 +41,53 @@ const TreasuryBalance = () => {
     const fetchWalletValue = async () => {
       try {
         const rpc = 'https://mainnet.helius-rpc.com/?api-key=56557c79-1e29-43da-a73f-1b8f58e3140a';
-        
-        // Get all token accounts for platform wallet
         const res = await fetch(rpc, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 'treasury',
+            jsonrpc: '2.0', id: 'treasury',
             method: 'getTokenAccountsByOwner',
-            params: [
-              '3be48KfHNFmQwn9DQqfYYDhXPrs5xQVzgF9sNW6YQYzx',
-              { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
-              { encoding: 'jsonParsed' }
-            ]
+            params: ['3be48KfHNFmQwn9DQqfYYDhXPrs5xQVzgF9sNW6YQYzx', { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' }, { encoding: 'jsonParsed' }]
           })
         });
-
         const data = await res.json();
         const accounts = data?.result?.value || [];
-
-        // Get all mint addresses and amounts
-        const tokens = accounts
-          .map(a => ({
-            mint: a.account.data.parsed.info.mint,
-            amount: Number(a.account.data.parsed.info.tokenAmount.uiAmount) || 0
-          }))
-          .filter(t => t.amount > 0);
-
+        const tokens = accounts.map(a => ({ mint: a.account.data.parsed.info.mint, amount: Number(a.account.data.parsed.info.tokenAmount.uiAmount) || 0 })).filter(t => t.amount > 0);
         if (tokens.length === 0) { setTotal(0); setLoading(false); return; }
-
-        // Fetch prices from DexScreener
         const mints = tokens.map(t => t.mint).join(',');
         const priceRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mints}`);
         const priceData = await priceRes.json();
-
-        // Build price map
         const priceMap = {};
-        (priceData.pairs || []).forEach(pair => {
-          const mint = pair.baseToken?.address;
-          if (mint && !priceMap[mint]) {
-            priceMap[mint] = parseFloat(pair.priceUsd) || 0;
-          }
-        });
-
-        // Calculate total USD value
-        const totalValue = tokens.reduce((sum, t) => {
-          const price = priceMap[t.mint] || 0;
-          return sum + (t.amount * price);
-        }, 0);
-
+        (priceData.pairs || []).forEach(pair => { const mint = pair.baseToken?.address; if (mint && !priceMap[mint]) priceMap[mint] = parseFloat(pair.priceUsd) || 0; });
+        const totalValue = tokens.reduce((sum, t) => sum + (t.amount * (priceMap[t.mint] || 0)), 0);
         setTotal(totalValue);
-      } catch (err) {
-        console.error('Treasury fetch error:', err);
-        setTotal(0);
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { setTotal(0); }
+      finally { setLoading(false); }
     };
-
     fetchWalletValue();
     const interval = setInterval(fetchWalletValue, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  const formatted = total === null ? '...' : total >= 1000000
-    ? `$${(total / 1000000).toFixed(2)}M`
-    : total >= 1000
-    ? `$${(total / 1000).toFixed(2)}K`
-    : `$${total?.toFixed(2)}`;
+  const formatted = total === null ? '...' : total >= 1000000 ? `$${(total/1000000).toFixed(2)}M` : total >= 1000 ? `$${(total/1000).toFixed(2)}K` : `$${total?.toFixed(2)}`;
 
   return (
-    <div style={{ marginTop: '20px', padding: '16px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#00ffff', opacity: 0.6 }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#ffffff', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '10px' }}>
-        Treasury
+    <div style={{ ...win95Box, border: '2px solid #00ffff', textAlign: 'center', marginTop: '10px' }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#00ffff', letterSpacing: '3px', marginBottom: '6px', animation: 'blink 2s infinite' }}>
+        ** TREASURY **
       </div>
-      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '38px', fontWeight: 900, color: loading ? '#333355' : '#00ff88', letterSpacing: '-1px', lineHeight: 1, marginBottom: '6px', transition: 'color 0.5s' }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 900, color: loading ? '#333' : '#00ff00', letterSpacing: '-1px', textShadow: loading ? 'none' : '0 0 10px #00ff00' }}>
         {loading ? '...' : formatted}
       </div>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#333355', letterSpacing: '2px', textTransform: 'uppercase' }}>
-        Live wallet value
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#004400', letterSpacing: '2px', animation: 'blink 2s infinite' }}>
+        LIVE WALLET VALUE
       </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#c8a84b', opacity: 0.3 }} />
     </div>
   );
 };
 
 const UserCount = () => {
   const [total, setTotal] = useState(null);
-
   useEffect(() => {
     getTotalUsers().then(setTotal);
     const interval = setInterval(() => getTotalUsers().then(setTotal), 60000);
@@ -118,25 +95,26 @@ const UserCount = () => {
   }, []);
 
   return (
-    <div style={{ marginTop: '10px', padding: '12px 14px', background: '#080814', borderRadius: '6px', border: '1px solid #1e1e40', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.6 }} />
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '8px', color: '#ffffff', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px' }}>
-        Total Users
+    <div style={{ ...win95Box, border: '2px solid #ff00ff', textAlign: 'center', marginTop: '6px' }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '3px', marginBottom: '4px' }}>
+        PRESSERS ONLINE
       </div>
-      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 900, color: '#9944ff', letterSpacing: '-1px', lineHeight: 1 }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '26px', fontWeight: 900, color: '#ff00ff' }}>
         {total === null ? '...' : total.toLocaleString()}
       </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: '#9944ff', opacity: 0.2 }} />
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#440044' }}>
+        TOTAL USERS
+      </div>
     </div>
   );
 };
 
 const SORT_OPTIONS = [
-  { key: 'weighted', label: '⭐ For You' },
-  { key: 'following', label: '👥 Following' },
-  { key: 'trending', label: '🔥 Trending' },
-  { key: 'created_at', label: 'New' },
-  { key: 'amount_paid_usd', label: '💸 Most Expensive' },
+  { key: 'weighted', label: '[FOR YOU]' },
+  { key: 'following', label: '[FOLLOWING]' },
+  { key: 'trending', label: '[TRENDING]' },
+  { key: 'created_at', label: '[NEW]' },
+  { key: 'amount_paid_usd', label: '[TOP $$$]' },
 ];
 
 export const Feed = () => {
@@ -158,115 +136,126 @@ export const Feed = () => {
         data = await fetchPosts(sort);
       }
       setPosts(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   }, [sort, publicKey]);
 
   useEffect(() => { loadPosts(); }, [loadPosts]);
 
-  // Real-time new posts
   useEffect(() => {
-    const unsub = subscribeToNewPosts((newPost) => {
-      setPosts((prev) => [newPost, ...prev]);
-    });
+    const unsub = subscribeToNewPosts((newPost) => setPosts((prev) => [newPost, ...prev]));
     return unsub;
   }, []);
 
-  const handlePostSuccess = (post) => {
-    setPosts((prev) => [post, ...prev]);
-  };
-
-  const handleLike = (postId) => {
-    setPosts((prev) =>
-      prev.map((p) => p.id === postId ? { ...p, likes: Number(p.likes) + 1 } : p)
-    );
-  };
-
-  const layout = {
-    display: 'grid',
-    gridTemplateColumns: '220px 1fr 260px',
-    gap: 0,
-    maxWidth: '1100px',
-    margin: '0 auto',
-    minHeight: 'calc(100vh - 84px)',
-    position: 'relative', zIndex: 1,
-  };
+  const handlePostSuccess = (post) => setPosts((prev) => [post, ...prev]);
+  const handleLike = (postId) => setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes: Number(p.likes) + 1 } : p));
 
   return (
     <>
       <Header onPressClick={() => setShowModal(true)} />
 
-      <div style={layout}>
-        {/* Sidebar */}
-        <aside style={{ padding: '20px 14px', borderRight: '1px solid var(--border)', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto' }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '10px' }}>Navigate</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 220px', maxWidth: '1100px', margin: '0 auto', minHeight: 'calc(100vh - 84px)', position: 'relative', zIndex: 1 }}>
+
+        {/* Left Sidebar */}
+        <aside style={{ padding: '12px 8px', borderRight: '2px solid #00ffff', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', borderBottom: '1px solid #ff00ff', paddingBottom: '4px', marginBottom: '8px' }}>
+            ** NAVIGATE **
+          </div>
+
           {[
-            { icon: '📰', label: 'Front Page', action: () => setSort('weighted') },
-            { icon: '👥', label: 'Following', action: () => setSort('following') },
-            { icon: '🔥', label: 'Trending', action: () => setSort('trending') },
-            { icon: '💰', label: 'Top Paid', action: () => setSort('amount_paid_usd') },
-            { icon: '🔍', label: 'Search', action: () => navigate('/search') },
-            { icon: '👤', label: 'Profile', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
+            { icon: '>', label: '[HOME PAGE]', action: () => setSort('weighted') },
+            { icon: '>', label: '[FOLLOWING]', action: () => setSort('following') },
+            { icon: '>', label: '[TRENDING]', action: () => setSort('trending') },
+            { icon: '>', label: '[TOP PAID]', action: () => setSort('amount_paid_usd') },
+            { icon: '>', label: '[SEARCH]', action: () => navigate('/search') },
+            { icon: '>', label: '[MY PROFILE]', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
+            { icon: '>', label: '[GUESTBOOK]', action: () => {} },
           ].map((item) => (
-            <div key={item.label} onClick={item.action} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 500, marginBottom: '2px', transition: 'background 0.1s' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--paper2)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            <div key={item.label} onClick={item.action}
+              style={{ fontFamily: "'Courier New', monospace", fontSize: '11px', color: '#00ff00', padding: '5px 6px', cursor: 'pointer', border: '1px solid transparent', marginBottom: '2px', letterSpacing: '0.5px' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#001a00'; e.currentTarget.style.borderColor = '#00ff00'; e.currentTarget.style.color = '#ffff00'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#00ff00'; }}
             >
-              <span style={{ fontSize: '16px', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-              {item.label}
+              {item.icon} {item.label}
             </div>
           ))}
 
           {publicKey && (
-            <button
-              onClick={() => setShowModal(true)}
-              style={{ width: '100%', background: 'var(--accent2)', color: '#fff', border: 'none', padding: '11px', fontFamily: "'Playfair Display', serif", fontSize: '15px', fontWeight: 700, borderRadius: '4px', marginTop: '16px', cursor: 'pointer', letterSpacing: '0.3px' }}
-            >
-              + Press a Post
+            <button onClick={() => setShowModal(true)}
+              style={{ width: '100%', background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '8px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', marginTop: '10px', textAlign: 'center' }}>
+              &gt;&gt; + PRESS POST &lt;&lt;
             </button>
           )}
 
           <TreasuryBalance />
           <UserCount />
-        </aside>
 
-        {/* Feed */}
-        <main style={{ padding: '20px', borderRight: '1px solid var(--border)' }}>
-          {/* Sort tabs */}
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: '20px' }}>
-            {SORT_OPTIONS.map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => setSort(opt.key)}
-                style={{
-                  padding: '8px 16px', fontSize: '13px', fontWeight: 500,
-                  cursor: 'pointer', background: 'none',
-                  border: 'none', borderBottom: `2px solid ${sort === opt.key ? 'var(--accent2)' : 'transparent'}`,
-                  color: sort === opt.key ? 'var(--text)' : 'var(--muted)',
-                  transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif",
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div style={{ marginTop: '10px', border: '1px solid #444', padding: '6px', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ffff00', marginBottom: '4px' }}>** BEST VIEWED **</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>NETSCAPE 4.0<br/>800x600 RES<br/>56K MODEM</div>
           </div>
 
+<div style={{ marginTop: '10px', border: '2px solid #c0c0c0', background: '#c0c0c0' }}>
+  <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ color: '#fff', fontSize: '9px', fontFamily: "'Courier New', monospace", fontWeight: 'bold' }}>WINAMP.EXE</div>
+    <div style={{ display: 'flex', gap: '2px' }}>
+      {['_','X'].map(b => <div key={b} style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{b}</div>)}
+    </div>
+  </div>
+  <div style={{ background: '#000', padding: '6px', borderTop: '1px solid #444' }}>
+    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#00ff00', marginBottom: '4px', animation: 'blink 2s infinite' }}>
+      &gt;&gt; THE PRESS FM &lt;&lt;
+    </div>
+    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', marginBottom: '6px' }}>
+      NOW PLAYING: PeptideGooner.MP3
+    </div>
+   <audio id="press-audio" src={process.env.PUBLIC_URL + '/peptidegooner.mp3'} loop style={{ display: 'none' }} />
+    <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
+      {[
+        { label: '|◄◄', id: 'rew' },
+        { label: '► PLAY', id: 'play' },
+        { label: '■ STOP', id: 'stop' },
+        { label: '►►|', id: 'fwd' },
+      ].map(btn => (
+        <button key={btn.id}
+          onClick={() => {
+            const audio = document.getElementById('press-audio');
+            if (btn.id === 'play') audio.play();
+            if (btn.id === 'stop') audio.pause();
+          }}
+          style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 4px', fontFamily: "'Courier New', monospace", fontSize: '9px', cursor: 'pointer', fontWeight: 'bold' }}>
+          {btn.label}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
+
+
+        </aside>
+
+
+
+        {/* Feed */}
+        <main style={{ padding: '12px', borderRight: '2px solid #ff00ff', background: '#000' }}>
+{/* Sort tabs — Win95 style */}
+<div style={{ display: 'flex', gap: '3px', background: '#c0c0c0', padding: '4px 6px', marginBottom: '12px', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', flexWrap: 'wrap' }}>
+  {SORT_OPTIONS.map((opt) => (
+    <button key={opt.key} onClick={() => setSort(opt.key)}
+      style={{ background: '#c0c0c0', color: '#000', borderTop: sort === opt.key ? '2px solid #444' : '2px solid #fff', borderLeft: sort === opt.key ? '2px solid #444' : '2px solid #fff', borderBottom: sort === opt.key ? '2px solid #fff' : '2px solid #444', borderRight: sort === opt.key ? '2px solid #fff' : '2px solid #444', padding: '3px 10px', fontFamily: "'Courier New', monospace", fontSize: '11px', cursor: 'pointer', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+      {opt.label}{opt.key === 'trending' && <span className="blink-hot" style={{ marginLeft: '4px' }}>HOT</span>}
+    </button>
+  ))}
+</div>
+
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace", fontSize: '13px' }}>
-              Loading the press...
+            <div style={{ textAlign: 'center', padding: '60px', color: '#00ff00', fontFamily: "'Courier New', monospace", fontSize: '12px', animation: 'blink 1s infinite' }}>
+              &gt; LOADING THE PRESS..._
             </div>
           ) : posts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🗞️</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '20px', marginBottom: '8px' }}>
-                {sort === 'following' ? 'No posts from people you follow' : 'Nothing printed yet'}
-              </div>
-              <div style={{ color: 'var(--muted)', fontSize: '14px' }}>
-                {sort === 'following' ? 'Follow some people to see their posts here' : 'Be the first to press a post'}
-              </div>
+            <div style={{ textAlign: 'center', padding: '60px', fontFamily: "'Courier New', monospace" }}>
+              <div style={{ fontSize: '12px', color: '#00ff00', marginBottom: '8px' }}>&gt; NO POSTS FOUND</div>
+              <div style={{ fontSize: '10px', color: '#444' }}>BE THE FIRST TO PRESS A POST</div>
             </div>
           ) : (
             posts.map((post) => (
@@ -275,94 +264,91 @@ export const Feed = () => {
           )}
         </main>
 
-        {/* Right panel */}
-        <aside style={{ padding: '20px 14px', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto' }}>
-
-          {/* Trending coins */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '12px' }}>
-              Coins on The Press
-            </div>
-            {coins.length === 0 && (
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontStyle: 'italic' }}>No coins yet</div>
-            )}
-            {coins.map((coin) => {
-              const price = prices[coin.mint];
-              const change = price?.change24h;
-              const isUp = change >= 0;
-              return (
-                <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '6px', textDecoration: 'none', color: 'var(--text)' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--paper2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--card)'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px' }}>🪙</div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 600 }}>${coin.ticker}</div>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--muted)' }}>{coin.mint.slice(0, 6)}...{coin.mint.slice(-4)}</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 500, color: isUp ? 'var(--green)' : 'var(--red)' }}>
-                      {change !== undefined ? `${isUp ? '+' : ''}${change.toFixed(1)}%` : '...'}
-                    </div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '10px', color: 'var(--muted)' }}>
-                      ${price?.usd < 0.0001 ? price?.usd?.toExponential(2) : price?.usd?.toFixed(6) || '...'}
-                    </div>
-                  </div>
-                </a>
-              );
-            })}
+        {/* Right Sidebar */}
+        <aside style={{ padding: '12px 8px', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', borderBottom: '1px solid #ff00ff', paddingBottom: '4px', marginBottom: '8px' }}>
+            ** HOT COINS **
           </div>
 
-          {/* The Pizza Moment */}
-         <div style={{ background: 'var(--ink)', borderRadius: '6px', padding: '14px' }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--accent)', letterSpacing: '1.5px', marginBottom: '8px' }}>
-              🗞️ HOW IT WORKS
+          {coins.length === 0 && (
+            <div style={{ fontSize: '10px', color: '#444', fontFamily: "'Courier New', monospace" }}>NO COINS YET</div>
+          )}
+
+          {coins.map((coin) => {
+            const price = prices[coin.mint];
+            const change = price?.change24h;
+            const isUp = change >= 0;
+            return (
+              <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 6px', background: '#050510', border: '1px solid #ff00ff', marginBottom: '4px', textDecoration: 'none', cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#0d001a'}
+                onMouseLeave={e => e.currentTarget.style.background = '#050510'}
+              >
+                <div>
+                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '11px', color: '#ff00ff', fontWeight: 'bold' }}>${coin.ticker}</div>
+                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>{coin.mint.slice(0,6)}...{coin.mint.slice(-4)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', fontWeight: 'bold', color: isUp ? '#00ff00' : '#ff4444' }}>
+                    {change !== undefined ? `${isUp ? '+' : ''}${change.toFixed(1)}%` : '...'}
+                  </div>
+                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>
+                    ${price?.usd < 0.0001 ? price?.usd?.toExponential(2) : price?.usd?.toFixed(6) || '...'}
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+
+          <div style={{ ...win95Box, border: '2px solid #ffff00', marginTop: '12px' }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ffff00', letterSpacing: '2px', marginBottom: '6px', animation: 'blink 2s infinite' }}>
+              *** HOW IT WORKS ***
             </div>
-            <div style={{ fontSize: '11px', color: '#aaa', lineHeight: 1.7 }}>
-              The Press runs on attention — paid for with memecoins.
-              <br /><br />
-              Find a coin you believe in. Paste its mint address, set your amount, and press your post. The more you spend, the more impressions your post earns.
-              <br /><br />
-              But spending alone doesn't make you viral. Posts that earn real likes, comments, and represses climb the trending feed fast. Pay to get seen. Earn your way to the top.
-              <br /><br />
-              <span style={{ color: 'var(--accent)' }}>Oil powered the industrial age. Memecoins power the attention age.</span>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#888', lineHeight: 1.7 }}>
+              1. CONNECT WALLET<br/>
+              2. PICK A SOLANA COIN<br/>
+              3. PAY TO POST<br/>
+              4. MORE $ = MORE VIEWS<br/><br/>
+              <span style={{ color: '#ff00ff' }}>OIL POWERED THE INDUSTRIAL AGE. MEMECOINS POWER THE ATTENTION AGE.</span>
             </div>
-          </div>        </aside>
+          </div>
+
+          <div style={{ marginTop: '8px', border: '2px solid #ff00ff', padding: '6px', background: '#000', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', animation: 'blink 1s infinite', marginBottom: '4px' }}>** TOP PRESSERS **</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#ffff00' }}>THIS WEEK</div>
+          </div>
+        </aside>
       </div>
 
-    {showModal && (
-        <PressModal
-          onClose={() => setShowModal(false)}
-          onSuccess={handlePostSuccess}
-        />
+      {showModal && (
+        <PressModal onClose={() => setShowModal(false)} onSuccess={handlePostSuccess} />
       )}
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Nav */}
       <div className="mobile-nav">
-        <div onClick={() => setSort('weighted')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'weighted' ? 'var(--accent)' : 'var(--muted)', fontSize: '10px' }}>
-          <span style={{ fontSize: '20px' }}>📰</span>
-          <span>Feed</span>
+        <div onClick={() => setSort('weighted')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'weighted' ? '#ff00ff' : '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
+          <span style={{ fontSize: '18px' }}>📰</span>
+          <span>FEED</span>
         </div>
-        <div onClick={() => setSort('trending')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'trending' ? 'var(--accent)' : 'var(--muted)', fontSize: '10px' }}>
-          <span style={{ fontSize: '20px' }}>🔥</span>
-          <span>Trending</span>
+        <div onClick={() => setSort('trending')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: sort === 'trending' ? '#ff00ff' : '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
+          <span style={{ fontSize: '18px' }}>🔥</span>
+          <span>HOT</span>
         </div>
         {publicKey && (
-          <div onClick={() => setShowModal(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', fontSize: '10px' }}>
-            <div style={{ width: '44px', height: '44px', background: 'var(--accent2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginTop: '-20px', border: '3px solid var(--press)' }}>+</div>
-            <span style={{ color: 'var(--muted)' }}>Press</span>
+          <div onClick={() => setShowModal(true)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
+            <div style={{ width: '44px', height: '44px', background: '#ff0000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginTop: '-20px', border: '3px solid #ffff00' }}>+</div>
+            <span style={{ color: '#555' }}>PRESS</span>
           </div>
         )}
-        <div onClick={() => navigate('/search')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: 'var(--muted)', fontSize: '10px' }}>
-          <span style={{ fontSize: '20px' }}>🔍</span>
-          <span>Search</span>
+        <div onClick={() => navigate('/search')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
+          <span style={{ fontSize: '18px' }}>🔍</span>
+          <span>FIND</span>
         </div>
-        <div onClick={() => publicKey && navigate(`/profile/${publicKey.toBase58()}`)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: 'var(--muted)', fontSize: '10px' }}>
-          <span style={{ fontSize: '20px' }}>👤</span>
-          <span>Profile</span>
+        <div onClick={() => publicKey && navigate(`/profile/${publicKey.toBase58()}`)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: 'pointer', color: '#555', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>
+          <span style={{ fontSize: '18px' }}>👤</span>
+          <span>ME</span>
         </div>
-      </div>    </>
+      </div>
+    </>
   );
 };

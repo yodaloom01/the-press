@@ -5,55 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCoinPrices } from '../hooks/useCoinPrices';
 import { NotificationBell } from './NotificationBell';
 
-const styles = {
-  header: {
-    background: '#08081a',
-    color: '#e8e8f0',
-    padding: '0 24px',
-    height: '56px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '16px',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-    borderBottom: '1px solid #1a1a3a',
-    boxShadow: '0 2px 20px rgba(0,255,255,0.05)',
-  },
-  logo: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: '22px',
-    fontWeight: 900,
-    letterSpacing: '-0.5px',
-    color: '#c8a84b',
-    flexShrink: 0,
-    cursor: 'pointer',
-  },
-  logoSpan: { color: '#ffffff' },
-  tickerWrap: {
-    background: '#050510',
-    overflow: 'hidden',
-    height: '26px',
-    display: 'flex',
-    alignItems: 'center',
-    borderBottom: '1px solid #1a1a3a',
-  },
-  tickerInner: {
-    display: 'flex',
-    animation: 'ticker 30s linear infinite',
-    whiteSpace: 'nowrap',
-  },
-  tickerItem: {
-    fontFamily: "'DM Mono', monospace",
-    fontSize: '10px',
-    color: '#c8a84b',
-    padding: '0 24px',
-    borderRight: '1px solid #1a1a3a',
-    textDecoration: 'none',
-  },
-};
-
 export const Header = ({ onPressClick }) => {
   const { publicKey } = useWallet();
   const { prices, coins } = useCoinPrices();
@@ -70,65 +21,84 @@ export const Header = ({ onPressClick }) => {
   const tickerItems = coins.map((coin) => {
     const price = prices[coin.mint];
     const change = price?.change24h;
-    const color = change >= 0 ? '#4fffb0' : '#ff6b6b';
+    const color = change >= 0 ? '#00ff00' : '#ff4444';
     return (
-      <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer" style={{ ...styles.tickerItem, textDecoration: 'none' }}>
-        🪙 ${coin.ticker}{' '}
-        {price && <span style={{ color }}>{change >= 0 ? '+' : ''}{change?.toFixed(1)}%</span>}
+      <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer"
+        style={{ fontFamily: "'Courier New', monospace", fontSize: '11px', color: '#000', fontWeight: 'bold', textShadow: '0 0 3px #fff', padding: '0 24px', borderRight: '1px solid #ff00ff', textDecoration: 'none', letterSpacing: '1px' }}>
+        *** ${coin.ticker} {price && <span style={{ color }}>{change >= 0 ? '+' : ''}{change?.toFixed(1)}%</span>} ***
       </a>
     );
   });
 
   return (
     <>
-      <header style={styles.header}>
-   {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={styles.logo} onClick={() => navigate('/')} className="cursor-pointer">
-            THE <span style={styles.logoSpan}>PRESS</span>
-          </div>
-          <a href="https://x.com/thepressonsol" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', color: '#888', fontSize: '13px', textDecoration: 'none' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#00ffff'}
-            onMouseLeave={e => e.currentTarget.style.color = '#888'}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          </a>
+      {/* Win95 title bar */}
+<style>{`
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .blink-online { animation: blink 1s infinite; color: #00ff00; }
+        .blink-hot { animation: blink 0.5s infinite; background: #ff0000; color: #ffff00; font-size: 8px; padding: 1px 3px; font-weight: bold; }
+      `}</style>
+      <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #00ffff' }}>
+        <div style={{ color: '#ffffff', fontSize: '11px', fontFamily: "'Courier New', monospace", fontWeight: 'bold', letterSpacing: '1px' }}>
+          THE PRESS v1.0 — Microsoft Internet Explorer 4.0
         </div>
-
-        {/* Search bar — center */}
-        <div style={{ flex: 1, maxWidth: '400px' }} className="desktop-only">
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" style={{ position: 'absolute', left: '10px', flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
-              onClick={() => navigate('/search')}
-              placeholder="Search posts, @users, $COINS..."
-              style={{ width: '100%', padding: '7px 12px 7px 32px', background: '#0f0f28', border: '1px solid #2a2a55', borderRadius: '20px', fontSize: '13px', color: '#e8e8f0', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
-            />
-          </div>
+        <div style={{ display: 'flex', gap: '2px' }}>
+          {['_', '[]', 'X'].map(b => (
+            <div key={b} style={{ width: '16px', height: '14px', background: '#c0c0c0', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'monospace' }}>{b}</div>
+          ))}
         </div>
+      </div>
 
-        {/* Right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          {publicKey && (
-            <button className="desktop-only" onClick={onPressClick} style={{ background: '#8b1a1a', color: '#fff', border: '1px solid #ff444444', padding: '7px 14px', fontFamily: "'Playfair Display', serif", fontSize: '13px', fontWeight: 700, borderRadius: '3px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              + Press
-            </button>
-          )}
-          <NotificationBell />
-          <WalletMultiButton />
-        </div>
-      </header>
-
-      <div style={styles.tickerWrap}>
-        <div style={styles.tickerInner}>
+      {/* Marquee ticker */}
+      <style>{`
+        @keyframes rainbow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
+      `}</style>
+      <div style={{ background: 'linear-gradient(270deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #ff00ff, #ff0000)', backgroundSize: '400% 400%', animation: 'rainbow 4s ease infinite', borderTop: '2px solid #fff', borderBottom: '2px solid #444', padding: '4px 0', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'inline-flex', animation: 'ticker 20s linear infinite' }}>
           {tickerItems}{tickerItems}{tickerItems}
         </div>
       </div>
+
+      {/* Main header */}
+      <header style={{ background: '#000', color: '#00ff00', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '40px', position: 'sticky', top: 0, zIndex: 100, borderBottom: '3px solid #ff00ff' }}>
+
+        {/* Left — status */}
+        <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', color: '#00ffff', lineHeight: 1.8, flexShrink: 0 }} className="desktop-only">
+          <div>&gt; CONNECTING TO SOLANA...</div>
+          <div>&gt; CHAIN ID: 41454</div>
+          <div>&gt; STATUS: <span style={{ color: '#00ff00', animation: 'blink 1s infinite', display: 'inline-block' }}>ONLINE</span></div>
+        </div>
+
+        {/* Center — logo */}
+        <div onClick={() => navigate('/')} style={{ cursor: 'pointer', textAlign: 'center', flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 900, color: '#ff00ff', textShadow: '4px 4px #00ffff', letterSpacing: '6px', lineHeight: 1 }}>
+            THE PRESS
+          </div>
+          <div style={{ fontSize: '9px', color: '#ff00ff', letterSpacing: '4px', animation: 'blink 1s infinite', marginTop: '2px' }}>
+            * ON SOLANA *
+          </div>
+          <div style={{ fontSize: '9px', color: '#00ffff', letterSpacing: '3px', animation: 'blink 1.5s infinite' }}>
+            PAY TO TREND &gt;&gt; MEMECOINS ONLY
+          </div>
+        </div>
+
+        {/* Right — buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end', flexShrink: 0 }}>
+          {publicKey && (
+            <button onClick={onPressClick}
+              style={{ background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '5px 14px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
+              &gt;&gt; + PRESS POST &lt;&lt;
+            </button>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <NotificationBell />
+            <WalletMultiButton />
+          </div>
+        </div>
+      </header>
+
+
     </>
   );
 };

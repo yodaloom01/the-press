@@ -8,6 +8,14 @@ import { format } from 'timeago.js';
 import { WalletName, WalletAvatar } from './WalletName';
 import { QuotePressModal } from './QuotePressModal';
 
+const mono = { fontFamily: "'Courier New', monospace" };
+
+const RetroBtn = ({ onClick, color = '#888', children, style = {} }) => (
+  <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color, background: 'none', border: 'none', cursor: 'pointer', padding: 0, letterSpacing: '1px', ...mono, ...style }}>
+    {children}
+  </button>
+);
+
 const ReplyItem = ({ reply, walletAddress, postId }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(Number(reply.likes) || 0);
@@ -23,18 +31,17 @@ const ReplyItem = ({ reply, walletAddress, postId }) => {
   };
 
   return (
-    <div style={{ marginLeft: '34px', marginBottom: '8px', display: 'flex', gap: '8px' }}>
-      <WalletAvatar address={reply.wallet_address} size={22} />
+    <div style={{ marginLeft: '28px', marginBottom: '6px', display: 'flex', gap: '6px' }}>
+      <WalletAvatar address={reply.wallet_address} size={20} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace", marginBottom: '2px' }}>
-          <Link to={`/profile/${reply.wallet_address}`} style={{ color: 'var(--muted)', textDecoration: 'none' }}><WalletName address={reply.wallet_address} /></Link>
-          {' · '}{format(reply.created_at)}
+        <div style={{ fontSize: '10px', color: '#888', ...mono, marginBottom: '2px' }}>
+          <Link to={`/profile/${reply.wallet_address}`} style={{ color: '#00ffff', textDecoration: 'none' }}><WalletName address={reply.wallet_address} /></Link>
+          {' // '}{format(reply.created_at)}
         </div>
-        <div style={{ fontSize: '12px', lineHeight: 1.4 }}>{reply.content}</div>
-        <button onClick={handleLike} style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px', fontSize: '10px', color: liked ? 'var(--accent2)' : 'var(--muted)', background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          {likeCount > 0 ? likeCount : ''}
-        </button>
+        <div style={{ fontSize: '11px', color: '#00ff00', lineHeight: 1.4 }}>{reply.content}</div>
+        <RetroBtn onClick={handleLike} color={liked ? '#ff4444' : '#555'}>
+          [{liked ? '♥' : '♡'} {likeCount > 0 ? likeCount : '0'}]
+        </RetroBtn>
       </div>
     </div>
   );
@@ -80,49 +87,36 @@ const CommentItem = ({ comment, walletAddress, postId, postOwnerWallet }) => {
   };
 
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <WalletAvatar address={comment.wallet_address} size={26} />
+    <div style={{ marginBottom: '10px', borderLeft: '2px solid #00ffff', paddingLeft: '8px' }}>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <WalletAvatar address={comment.wallet_address} size={22} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace", marginBottom: '2px' }}>
-            <Link to={`/profile/${comment.wallet_address}`} style={{ color: 'var(--muted)', textDecoration: 'none' }}><WalletName address={comment.wallet_address} /></Link>
-            {' · '}{format(comment.created_at)}
+          <div style={{ fontSize: '10px', color: '#888', ...mono, marginBottom: '2px' }}>
+            <Link to={`/profile/${comment.wallet_address}`} style={{ color: '#00ffff', textDecoration: 'none' }}><WalletName address={comment.wallet_address} /></Link>
+            {' // '}{format(comment.created_at)}
           </div>
-          <div style={{ fontSize: '13px', lineHeight: 1.4 }}>{comment.content}</div>
-          <div style={{ display: 'flex', gap: '12px', marginTop: '5px' }}>
-            <button onClick={handleLike} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: liked ? 'var(--accent2)' : 'var(--muted)', background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0 }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              {likeCount > 0 ? likeCount : ''}
-            </button>
-            {walletAddress && (
-              <button onClick={() => setShowReplyInput(!showReplyInput)} style={{ fontSize: '11px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Mono', monospace" }}>
-                Reply
-              </button>
-            )}
-            {repliesCount > 0 && (
-              <button onClick={() => setShowReplies(!showReplies)} style={{ fontSize: '11px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Mono', monospace" }}>
-                {showReplies ? 'Hide' : `${repliesCount} ${repliesCount === 1 ? 'reply' : 'replies'}`}
-              </button>
-            )}
+          <div style={{ fontSize: '12px', color: '#00ff00', lineHeight: 1.4 }}>{comment.content}</div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+            <RetroBtn onClick={handleLike} color={liked ? '#ff4444' : '#555'}>
+              [{liked ? '♥' : '♡'} {likeCount > 0 ? likeCount : '0'}]
+            </RetroBtn>
+            {walletAddress && <RetroBtn onClick={() => setShowReplyInput(!showReplyInput)} color="#555">[REPLY]</RetroBtn>}
+            {repliesCount > 0 && <RetroBtn onClick={() => setShowReplies(!showReplies)} color="#555">[{showReplies ? 'HIDE' : `${repliesCount} REPLIES`}]</RetroBtn>}
           </div>
         </div>
       </div>
 
       {showReplyInput && (
-        <div style={{ marginLeft: '34px', marginTop: '8px', display: 'flex', gap: '8px' }}>
-          <input
-            value={replyText}
-            onChange={e => setReplyText(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleReply()}
-            placeholder={`Reply to ${shortWallet(comment.wallet_address)}...`}
-            style={{ flex: 1, padding: '6px 10px', background: 'var(--paper2)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '12px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
-          />
-          <button onClick={handleReply} disabled={!replyText.trim() || submitting} style={{ background: 'var(--accent)', color: 'var(--press)', border: 'none', padding: '6px 10px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '10px', fontWeight: 500, cursor: 'pointer', opacity: !replyText.trim() || submitting ? 0.5 : 1 }}>
-            Post
+        <div style={{ marginLeft: '28px', marginTop: '6px', display: 'flex', gap: '6px' }}>
+          <input value={replyText} onChange={e => setReplyText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleReply()}
+            placeholder={`> REPLY TO ${shortWallet(comment.wallet_address)}...`}
+            style={{ flex: 1, padding: '4px 8px', background: '#000', border: '1px solid #00ffff', fontSize: '11px', color: '#00ff00', outline: 'none', ...mono }} />
+          <button onClick={handleReply} disabled={!replyText.trim() || submitting}
+            style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 8px', ...mono, fontSize: '10px', cursor: 'pointer', opacity: !replyText.trim() || submitting ? 0.5 : 1 }}>
+            POST
           </button>
         </div>
       )}
-
       {showReplies && replies.map(r => <ReplyItem key={r.id} reply={r} walletAddress={walletAddress} postId={postId} />)}
     </div>
   );
@@ -148,41 +142,29 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   const impressionRecorded = useRef(false);
   const cardRef = useRef();
 
-
   useEffect(() => {
-    if (post.quote_of) {
-      fetchQuotedPost(post.quote_of).then(setQuotedPost);
-    }
+    if (post.quote_of) fetchQuotedPost(post.quote_of).then(setQuotedPost);
   }, [post.quote_of]);
 
   useEffect(() => {
     if (impressionRecorded.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            // Post is at least 50% visible — start 1 second timer
-            const timer = setTimeout(() => {
-              if (!impressionRecorded.current) {
-                impressionRecorded.current = true;
-                recordImpression(post.id, walletAddress);
-                setViews(v => v + 1);
-                observer.disconnect();
-              }
-            }, 1000);
-            entry.target._timer = timer;
-          } else {
-            // Post scrolled out before 1 second — cancel timer
-            if (entry.target._timer) {
-              clearTimeout(entry.target._timer);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          const timer = setTimeout(() => {
+            if (!impressionRecorded.current) {
+              impressionRecorded.current = true;
+              recordImpression(post.id, walletAddress);
+              setViews(v => v + 1);
+              observer.disconnect();
             }
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
+          }, 1000);
+          entry.target._timer = timer;
+        } else {
+          if (entry.target._timer) clearTimeout(entry.target._timer);
+        }
+      });
+    }, { threshold: 0.5 });
     if (cardRef.current) observer.observe(cardRef.current);
     return () => observer.disconnect();
   }, [post.id, walletAddress]);
@@ -196,14 +178,9 @@ export const PostCard = ({ post, onLike, onDelete }) => {
 
   useEffect(() => {
     const unsub = subscribeToComments(post.id, (newComment) => {
-      if (newComment.parent_id) return; // ignore replies for top-level count
+      if (newComment.parent_id) return;
       setCommentCount(c => c + 1);
-      if (showComments) {
-        setComments(prev => {
-          if (prev.find(c => c.id === newComment.id)) return prev;
-          return [...prev, newComment];
-        });
-      }
+      if (showComments) setComments(prev => prev.find(c => c.id === newComment.id) ? prev : [...prev, newComment]);
     });
     return unsub;
   }, [post.id, showComments]);
@@ -216,11 +193,7 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   const handleLike = async () => {
     if (!walletAddress || liked) return;
     const result = await likePost(post.id, walletAddress, post.wallet_address);
-    if (!result.alreadyLiked) {
-      setLiked(true);
-      setLikeCount(c => c + 1);
-      if (onLike) onLike(post.id);
-    }
+    if (!result.alreadyLiked) { setLiked(true); setLikeCount(c => c + 1); if (onLike) onLike(post.id); }
   };
 
   const handleComment = async () => {
@@ -229,10 +202,7 @@ export const PostCard = ({ post, onLike, onDelete }) => {
     try {
       const newComment = await addComment(post.id, walletAddress, commentText.trim(), post.wallet_address);
       setCommentText('');
-      setComments(prev => {
-        if (prev.find(c => c.id === newComment.id)) return prev;
-        return [...prev, newComment];
-      });
+      setComments(prev => prev.find(c => c.id === newComment.id) ? prev : [...prev, newComment]);
       setCommentCount(c => c + 1);
     } catch {}
     setSubmittingComment(false);
@@ -259,153 +229,140 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   const formatViews = (n) => n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1_000 ? `${(n/1_000).toFixed(1)}K` : n.toString();
 
   return (
-    <div ref={cardRef} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '16px', overflow: 'hidden', animation: 'fadeIn 0.3s ease forwards' }}>
+    <div ref={cardRef} style={{ background: '#000', border: '2px solid #00ffff', marginBottom: '10px', animation: 'fadeIn 0.3s ease forwards' }}>
 
-      {/* Repressed by banner */}
-      {post.repressed_by && (
-        <div style={{ padding: '6px 14px', background: 'var(--paper2)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace" }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          <WalletName address={post.repressed_by} asLink style={{ color: 'var(--muted)', fontSize: '11px', fontFamily: "'DM Mono', monospace" }} />
-          <span>repressed</span>
+      {/* Win95 title bar */}
+      <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #00ffff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <WalletAvatar address={post.wallet_address} size={16} />
+          <WalletName address={post.wallet_address} asLink style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffff00', ...mono }} />
+          <span style={{ fontSize: '10px', color: '#8888ff', ...mono }}> // {format(post.created_at)}</span>
         </div>
-      )}
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px 8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <WalletAvatar address={post.wallet_address} size={32} />
-          <div>
-            <WalletName address={post.wallet_address} asLink style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }} />
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace" }}>{format(post.created_at)}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--ink)', color: 'var(--accent)', padding: '4px 9px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '10px', fontWeight: 500 }}>
-          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent)', animation: 'pulse 2s infinite' }} />
-          <a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none' }}>🪙 ${post.coin_ticker}</a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff00ff', animation: 'pulse 2s infinite' }} />
+          <a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer"
+            style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 6px', fontSize: '9px', ...mono, textDecoration: 'none', animation: 'blink 1.5s infinite' }}>
+            ** ${post.coin_ticker} **
+          </a>
         </div>
       </div>
 
-      {/* Media */}
-      {post.media_url && (
-        post.media_type === 'video'
-          ? <video style={{ width: '100%', maxHeight: '500px', objectFit: 'cover', display: 'block', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }} src={post.media_url} controls muted loop playsInline />
-          : <img style={{ width: '100%', maxHeight: '500px', objectFit: 'cover', display: 'block', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }} src={post.media_url} alt={post.caption || 'press post'} />
-      )}
-
-      {/* Caption */}
-      {post.caption && <div style={{ padding: '10px 14px', fontSize: '14px', lineHeight: 1.5 }}>{post.caption}</div>}
-
-      {/* Quoted post preview */}
-      {quotedPost && (
-        <div style={{ margin: '0 14px 10px', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px 12px', background: 'var(--paper2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-            <WalletAvatar address={quotedPost.wallet_address} size={20} />
-            <WalletName address={quotedPost.wallet_address} asLink style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }} />
-            <span style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: "'DM Mono', monospace" }}>{format(quotedPost.created_at)}</span>
-            <span style={{ marginLeft: 'auto', background: 'var(--ink)', color: 'var(--accent)', padding: '2px 6px', borderRadius: '3px', fontFamily: "'DM Mono', monospace", fontSize: '9px' }}>🪙 ${quotedPost.coin_ticker}</span>
-          </div>
-          {quotedPost.media_url && <img src={quotedPost.media_url} alt="" style={{ width: '100%', maxHeight: '120px', objectFit: 'cover', borderRadius: '4px', marginBottom: '6px', display: 'block' }} />}
-          {quotedPost.caption && <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.4 }}>{quotedPost.caption}</div>}
+      {/* Repressed by banner */}
+      {post.repressed_by && (
+        <div style={{ padding: '3px 8px', background: '#0d0d0d', borderBottom: '1px solid #333', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: '#555', ...mono }}>
+          &gt;&gt; REPRESSED BY: <WalletName address={post.repressed_by} asLink style={{ color: '#00ffff', fontSize: '10px', ...mono }} />
         </div>
       )}
 
-      {/* Impression bar */}
+      {/* Media */}
+      {post.media_url && (
+        <div style={{ position: 'relative', borderBottom: '1px solid #333' }}>
+          {post.media_type === 'video'
+            ? <video style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', display: 'block' }} src={post.media_url} controls muted loop playsInline />
+            : <img style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', display: 'block' }} src={post.media_url} alt={post.caption || 'press post'} />
+          }
+          {/* Scanline overlay */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)', pointerEvents: 'none' }} />
+        </div>
+      )}
+
+      {/* Caption */}
+      {post.caption && (
+        <div style={{ padding: '8px 10px', fontSize: '12px', color: '#00ff00', lineHeight: 1.5, borderBottom: '1px solid #111', ...mono }}>
+          &gt; {post.caption}
+        </div>
+      )}
+
+      {/* Quoted post */}
+      {quotedPost && (
+        <div style={{ margin: '6px 8px', border: '1px solid #333', padding: '6px 8px', background: '#050510' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+            <WalletAvatar address={quotedPost.wallet_address} size={16} />
+            <WalletName address={quotedPost.wallet_address} asLink style={{ fontSize: '10px', fontWeight: 'bold', color: '#00ffff', ...mono }} />
+            <span style={{ fontSize: '9px', color: '#555', ...mono }}>{format(quotedPost.created_at)}</span>
+            <span style={{ marginLeft: 'auto', background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 4px', fontSize: '8px', ...mono }}>** ${quotedPost.coin_ticker} **</span>
+          </div>
+          {quotedPost.media_url && <img src={quotedPost.media_url} alt="" style={{ width: '100%', maxHeight: '80px', objectFit: 'cover', display: 'block', marginBottom: '4px' }} />}
+          {quotedPost.caption && <div style={{ fontSize: '11px', color: '#888', lineHeight: 1.4, ...mono }}>&gt; {quotedPost.caption}</div>}
+        </div>
+      )}
+
+      {/* Reach bar */}
       {reachTarget > 0 && (
-        <div style={{ margin: '0 14px 4px' }}>
-          <div style={{ height: '3px', background: 'var(--paper2)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${impressionPct}%`, background: 'linear-gradient(90deg, var(--accent), var(--accent2))', borderRadius: '2px' }} />
+        <div style={{ margin: '0 8px 2px' }}>
+          <div style={{ height: '4px', background: '#111', border: '1px solid #333', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${impressionPct}%`, background: '#ff00ff' }} />
           </div>
         </div>
       )}
 
       {/* Paid label */}
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '9px', color: 'var(--muted)', padding: '4px 14px 8px', display: 'flex', justifyContent: 'space-between' }}>
-        <span>Paid to press</span>
-        <span style={{ color: 'var(--green)', fontWeight: 500 }}>{formatAmount(Number(post.amount_paid))} ${post.coin_ticker}</span>
+      <div style={{ fontSize: '9px', color: '#555', padding: '3px 10px 6px', display: 'flex', justifyContent: 'space-between', ...mono }}>
+        <span>PAID TO PRESS:</span>
+        <span style={{ color: '#00ffff', fontWeight: 'bold' }}>{formatAmount(Number(post.amount_paid))} ${post.coin_ticker}</span>
       </div>
 
       {/* Stats row */}
-      <div style={{ padding: '8px 14px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <button onClick={handleLike} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: liked ? 'var(--accent2)' : 'var(--muted)', background: 'none', border: 'none', cursor: liked ? 'default' : 'pointer', padding: 0, fontFamily: "'DM Sans', sans-serif" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            {likeCount}
-          </button>
-          <button onClick={handleRepress} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: repressed ? 'var(--green)' : 'var(--muted)', background: 'none', border: 'none', cursor: walletAddress ? 'pointer' : 'default', padding: 0, fontFamily: "'DM Sans', sans-serif" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            {repressCount > 0 ? repressCount : ''}
-          </button>
-          <button onClick={() => setShowComments(!showComments)} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: showComments ? 'var(--text)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: "'DM Sans', sans-serif" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            {commentCount}
-          </button>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--muted)' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            {formatViews(views)}
-            {reachTarget > 0 && <span style={{ color: remainingImpressions > 0 ? 'var(--green)' : 'var(--muted)', fontSize: '10px' }}>/{formatViews(reachTarget)}</span>}
-          </span>
+      <div style={{ padding: '6px 10px 8px', display: 'flex', alignItems: 'center', gap: '10px', borderTop: '1px solid #111', flexWrap: 'wrap' }}>
+        <RetroBtn onClick={handleLike} color={liked ? '#ff4444' : '#555'}>
+          [{liked ? '♥' : '♡'} {likeCount}]
+        </RetroBtn>
+        <RetroBtn onClick={handleRepress} color={repressed ? '#00ff00' : '#555'}>
+          [RT {repressCount > 0 ? repressCount : '0'}]
+        </RetroBtn>
+        <RetroBtn onClick={() => setShowComments(!showComments)} color={showComments ? '#00ffff' : '#555'}>
+          [MSG {commentCount}]
+        </RetroBtn>
+        <span style={{ fontSize: '10px', color: '#555', ...mono }}>
+          [VIEWS {formatViews(views)}{reachTarget > 0 && `/${formatViews(reachTarget)}`}]
+        </span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+          <RetroBtn onClick={handleShare} color={copied ? '#00ff00' : '#555'}>
+            {copied ? '[COPIED!]' : '[SHARE]'}
+          </RetroBtn>
+          {walletAddress && <RetroBtn onClick={() => setShowQuoteModal(true)} color="#555">[QUOTE]</RetroBtn>}
+          {walletAddress === post.wallet_address && (
+            <RetroBtn color="#ff4444" onClick={async () => {
+              if (window.confirm('DELETE THIS POST? NO REFUNDS.')) {
+                await supabase.from('posts').update({ is_active: false }).eq('id', post.id);
+                toast.success('Post deleted');
+                if (onDelete) onDelete(post.id);
+              }
+            }}>
+              [DEL]
+            </RetroBtn>
+          )}
         </div>
-        <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: copied ? 'var(--green)' : 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Mono', monospace", padding: 0 }}>
-          {copied ? '✓ Copied!' : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</>}
-        </button>
-        {walletAddress && (
-          <button onClick={() => setShowQuoteModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Mono', monospace", padding: 0 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>
-            Quote
-          </button>
-        )}
-{walletAddress === post.wallet_address && (
-  <button onClick={async () => {
-    if (window.confirm('Delete this post? No refunds.')) {
-      await supabase.from('posts').update({ is_active: false }).eq('id', post.id);
-      toast.success('Post deleted');
-      if (onDelete) onDelete(post.id);
-    }
-  }} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#ff4466', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Mono', monospace", padding: 0 }}>
-    🗑 Delete
-  </button>
-)}
       </div>
 
       {/* Comments */}
       {showComments && (
-        <div style={{ borderTop: '1px solid var(--border)', padding: '12px 14px' }}>
-          {comments.length === 0 && <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px', fontStyle: 'italic' }}>No comments yet — be the first</div>}
+        <div style={{ borderTop: '2px solid #00ffff', padding: '10px', background: '#000' }}>
+          <div style={{ fontSize: '9px', color: '#00ffff', ...mono, marginBottom: '8px', letterSpacing: '2px' }}>** COMMENTS **</div>
+          {comments.length === 0 && <div style={{ fontSize: '11px', color: '#444', marginBottom: '10px', ...mono }}>&gt; NO COMMENTS YET — BE THE FIRST</div>}
           {comments.slice(0, visibleComments).map(c => <CommentItem key={c.id} comment={c} walletAddress={walletAddress} postId={post.id} postOwnerWallet={post.wallet_address} />)}
           {comments.length > visibleComments && (
-            <button
-              onClick={() => setVisibleComments(v => v + 5)}
-              style={{ fontSize: '12px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontFamily: "'DM Mono', monospace", marginBottom: '8px' }}
-            >
-              Show {Math.min(5, comments.length - visibleComments)} more comment{Math.min(5, comments.length - visibleComments) !== 1 ? 's' : ''}
-            </button>
-          )}
-          {visibleComments > 5 && comments.length <= visibleComments && (
-            <button
-              onClick={() => setVisibleComments(5)}
-              style={{ fontSize: '12px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontFamily: "'DM Mono', monospace", marginBottom: '8px' }}
-            >
-              Show less
-            </button>
+            <RetroBtn onClick={() => setVisibleComments(v => v + 5)} color="#555" style={{ marginBottom: '8px' }}>
+              [SHOW {Math.min(5, comments.length - visibleComments)} MORE]
+            </RetroBtn>
           )}
           {walletAddress ? (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleComment()} placeholder="Add a comment..." style={{ flex: 1, padding: '7px 10px', background: 'var(--paper2)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '13px', color: 'var(--text)', outline: 'none', fontFamily: "'DM Sans', sans-serif" }} />
-              <button onClick={handleComment} disabled={!commentText.trim() || submittingComment} style={{ background: 'var(--accent)', color: 'var(--press)', border: 'none', padding: '7px 12px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 500, cursor: 'pointer', opacity: !commentText.trim() || submittingComment ? 0.5 : 1 }}>Post</button>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+              <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleComment()}
+                placeholder="> TYPE YOUR COMMENT..."
+                style={{ flex: 1, padding: '5px 8px', background: '#000', border: '2px solid #00ffff', fontSize: '11px', color: '#00ff00', outline: 'none', ...mono }} />
+              <button onClick={handleComment} disabled={!commentText.trim() || submittingComment}
+                style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '4px 10px', ...mono, fontSize: '11px', cursor: 'pointer', opacity: !commentText.trim() || submittingComment ? 0.5 : 1, fontWeight: 'bold' }}>
+                POST
+              </button>
             </div>
           ) : (
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '8px' }}>Connect wallet to comment</div>
+            <div style={{ fontSize: '11px', color: '#555', marginTop: '8px', ...mono }}>&gt; CONNECT WALLET TO COMMENT</div>
           )}
         </div>
       )}
 
-      {showQuoteModal && (
-        <QuotePressModal
-          post={post}
-          onClose={() => setShowQuoteModal(false)}
-          onSuccess={() => setShowQuoteModal(false)}
-        />
-      )}
+      {showQuoteModal && <QuotePressModal post={post} onClose={() => setShowQuoteModal(false)} onSuccess={() => setShowQuoteModal(false)} />}
     </div>
   );
 };
