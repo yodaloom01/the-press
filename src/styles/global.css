@@ -125,6 +125,12 @@ button:active {
   .feed-grid aside {
     display: none !important;
   }
+  .desktop-only {
+    display: none !important;
+  }
+  header {
+    justify-content: center !important;
+  }
   .mobile-nav {
     display: flex !important;
     position: fixed !important;
@@ -140,4 +146,3 @@ button:active {
     font-family: 'Courier New', monospace !important;
   }
 }
-
