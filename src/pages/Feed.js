@@ -264,41 +264,55 @@ export const Feed = () => {
           )}
         </main>
 
-        {/* Right Sidebar */}
+{/* Right Sidebar */}
         <aside style={{ padding: '12px 8px', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', borderBottom: '1px solid #ff00ff', paddingBottom: '4px', marginBottom: '8px' }}>
-            ** HOT COINS **
+
+          {/* Win95 Hot Coins Window */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>** HOT COINS **</span>
+              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
+            </div>
+            {coins.length === 0 ? (
+              <>
+                <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ fontSize: '28px' }}>🖥️</div>
+                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#000' }}>Not found.</div>
+                </div>
+                <div style={{ padding: '6px', textAlign: 'center', borderTop: '1px solid #808080' }}>
+                  <button style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 20px', fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', minWidth: '60px' }}>Ok</button>
+                </div>
+              </>
+            ) : (
+              <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080' }}>
+                {coins.map((coin) => {
+                  const price = prices[coin.mint];
+                  const change = price?.change24h;
+                  const isUp = change >= 0;
+                  return (
+                    <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px solid #c0c0c0', textDecoration: 'none', background: '#fff' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#000080'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                    >
+                      <div>
+                        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#000', fontWeight: 'bold' }}>${coin.ticker}</div>
+                        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: '#808080' }}>{coin.mint.slice(0,6)}...{coin.mint.slice(-4)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: 'bold', color: isUp ? '#008000' : '#ff0000' }}>
+                          {change !== undefined ? `${isUp ? '+' : ''}${change.toFixed(1)}%` : '...'}
+                        </div>
+                        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: '#808080' }}>
+                          ${price?.usd < 0.0001 ? price?.usd?.toExponential(2) : price?.usd?.toFixed(6) || '...'}
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
-
-          {coins.length === 0 && (
-            <div style={{ fontSize: '10px', color: '#444', fontFamily: "'Courier New', monospace" }}>NO COINS YET</div>
-          )}
-
-          {coins.map((coin) => {
-            const price = prices[coin.mint];
-            const change = price?.change24h;
-            const isUp = change >= 0;
-            return (
-              <a key={coin.mint} href={`https://pump.fun/coin/${coin.mint}`} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 6px', background: '#050510', border: '1px solid #ff00ff', marginBottom: '4px', textDecoration: 'none', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#0d001a'}
-                onMouseLeave={e => e.currentTarget.style.background = '#050510'}
-              >
-                <div>
-                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '11px', color: '#ff00ff', fontWeight: 'bold' }}>${coin.ticker}</div>
-                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>{coin.mint.slice(0,6)}...{coin.mint.slice(-4)}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '10px', fontWeight: 'bold', color: isUp ? '#00ff00' : '#ff4444' }}>
-                    {change !== undefined ? `${isUp ? '+' : ''}${change.toFixed(1)}%` : '...'}
-                  </div>
-                  <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>
-                    ${price?.usd < 0.0001 ? price?.usd?.toExponential(2) : price?.usd?.toFixed(6) || '...'}
-                  </div>
-                </div>
-              </a>
-            );
-          })}
 
           <div style={{ ...win95Box, border: '2px solid #ffff00', marginTop: '12px' }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ffff00', letterSpacing: '2px', marginBottom: '6px', animation: 'blink 2s infinite' }}>
@@ -317,8 +331,8 @@ export const Feed = () => {
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', animation: 'blink 1s infinite', marginBottom: '4px' }}>** TOP PRESSERS **</div>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#ffff00' }}>THIS WEEK</div>
           </div>
+
         </aside>
-      </div>
 
       {showModal && (
         <PressModal onClose={() => setShowModal(false)} onSuccess={handlePostSuccess} />
@@ -326,19 +340,19 @@ export const Feed = () => {
 
      {/* Mobile Bottom Nav */}
       <div className="mobile-nav" style={{ background: '#c0c0c0', borderTop: '3px solid #fff', padding: '4px 8px', gap: '4px' }}>
-        {[
+       {[
           { icon: '📰', label: 'FEED', action: () => setSort('weighted') },
           { icon: '🔥', label: 'HOT', action: () => setSort('trending') },
           { icon: '+', label: 'PRESS', action: () => setShowModal(true), isPress: true },
           { icon: '🔍', label: 'FIND', action: () => navigate('/search') },
-          { icon: '👤', label: 'ME', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
-        ].map((item) => (
-          <button key={item.label} onClick={item.action}
+          { icon: '👤', label: publicKey ? 'ME' : 'LOGIN', action: () => publicKey ? navigate(`/profile/${publicKey.toBase58()}`) : document.querySelector('.wallet-adapter-button')?.click() },
+        ].map((item) => (          <button key={item.label} onClick={item.action}
             style={{ background: item.isPress ? '#ff0000' : '#c0c0c0', color: item.isPress ? '#ffff00' : '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '4px 6px', fontFamily: "'Courier New', monospace", fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}>
             <span style={{ fontSize: '16px' }}>{item.icon}</span>
             {item.label}
           </button>
         ))}
+      </div>
       </div>
     </>
   );
