@@ -71,18 +71,15 @@ const TreasuryBalance = () => {
 
   const formatted = total === null ? '...' : total >= 1000000 ? `$${(total/1000000).toFixed(2)}M` : total >= 1000 ? `$${(total/1000).toFixed(2)}K` : `$${total?.toFixed(2)}`;
 
-  return (
-    <div style={{ ...win95Box, border: '2px solid #00ffff', textAlign: 'center', marginTop: '10px' }}>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#00ffff', letterSpacing: '3px', marginBottom: '6px', animation: 'blink 2s infinite' }}>
-        ** TREASURY **
-      </div>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 900, color: loading ? '#333' : '#00ff00', letterSpacing: '-1px', textShadow: loading ? 'none' : '0 0 10px #00ff00' }}>
-        {loading ? '...' : formatted}
-      </div>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#004400', letterSpacing: '2px', animation: 'blink 2s infinite' }}>
-        LIVE WALLET VALUE
-      </div>
+return (
+  <div style={{ textAlign: 'center', padding: '4px' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#808080', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 'bold' }}>
+      Live Wallet Value
+    </div>    
+    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 'bold', color: '#008000', letterSpacing: '1px' }}>
+      {loading ? '...' : formatted}
     </div>
+  </div>
   );
 };
 
@@ -115,7 +112,9 @@ const SORT_OPTIONS = [
   { key: 'trending', label: '[TRENDING]' },
   { key: 'created_at', label: '[NEW]' },
   { key: 'amount_paid_usd', label: '[TOP $$$]' },
+
 ];
+
 
 export const Feed = () => {
   const { publicKey } = useWallet();
@@ -156,81 +155,113 @@ export const Feed = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 220px', maxWidth: '1100px', margin: '0 auto', minHeight: 'calc(100vh - 84px)', position: 'relative', zIndex: 1 }} className="feed-grid">
 
-        {/* Left Sidebar */}
-        <aside style={{ padding: '12px 8px', borderRight: '2px solid #00ffff', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', letterSpacing: '2px', borderBottom: '1px solid #ff00ff', paddingBottom: '4px', marginBottom: '8px' }}>
-            ** NAVIGATE **
-          </div>
+        <aside style={{ padding: '8px', borderRight: '2px solid #00ffff', position: 'sticky', top: '84px', height: 'calc(100vh - 84px)', overflowY: 'auto', background: '#000' }}>
 
-          {[
-            { icon: '>', label: '[HOME PAGE]', action: () => setSort('weighted') },
-            { icon: '>', label: '[FOLLOWING]', action: () => setSort('following') },
-            { icon: '>', label: '[TRENDING]', action: () => setSort('trending') },
-            { icon: '>', label: '[TOP PAID]', action: () => setSort('amount_paid_usd') },
-            { icon: '>', label: '[SEARCH]', action: () => navigate('/search') },
-            { icon: '>', label: '[MY PROFILE]', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
-            { icon: '>', label: '[GUESTBOOK]', action: () => {} },
-          ].map((item) => (
-            <div key={item.label} onClick={item.action}
-              style={{ fontFamily: "'Courier New', monospace", fontSize: '11px', color: '#00ff00', padding: '5px 6px', cursor: 'pointer', border: '1px solid transparent', marginBottom: '2px', letterSpacing: '0.5px' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#001a00'; e.currentTarget.style.borderColor = '#00ff00'; e.currentTarget.style.color = '#ffff00'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#00ff00'; }}
-            >
-              {item.icon} {item.label}
+          {/* Win95 Navigate Window */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Navigate</span>
+              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
             </div>
-          ))}
-
-          {publicKey && (
-            <button onClick={() => setShowModal(true)}
-              style={{ width: '100%', background: '#ff0000', color: '#ffff00', borderTop: '2px solid #ff8888', borderLeft: '2px solid #ff8888', borderBottom: '2px solid #880000', borderRight: '2px solid #880000', padding: '8px', fontFamily: "'Courier New', monospace", fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px', marginTop: '10px', textAlign: 'center' }}>
-              &gt;&gt; + PRESS POST &lt;&lt;
-            </button>
-          )}
-
-          <TreasuryBalance />
-          <UserCount />
-
-          <div style={{ marginTop: '10px', border: '1px solid #444', padding: '6px', textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ffff00', marginBottom: '4px' }}>** BEST VIEWED **</div>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#444' }}>NETSCAPE 4.0<br/>800x600 RES<br/>56K MODEM</div>
+            <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '4px' }}>
+              {[
+                { label: 'Home Page', action: () => setSort('weighted') },
+                { label: 'Following', action: () => setSort('following') },
+                { label: 'Trending', action: () => setSort('trending') },
+                { label: 'Top Paid', action: () => setSort('amount_paid_usd') },
+                { label: 'Search', action: () => navigate('/search') },
+                { label: 'My Profile', action: () => publicKey && navigate(`/profile/${publicKey.toBase58()}`) },
+                { label: 'Guestbook', action: () => {} },
+              ].map(item => (
+                <div key={item.label} onClick={item.action}
+                  style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#000', padding: '3px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#000080'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000'; }}
+                >
+                  📁 {item.label}
+                </div>
+              ))}
+            </div>
+            {publicKey && (
+              <div style={{ padding: '4px', borderTop: '1px solid #808080' }}>
+                <button onClick={() => setShowModal(true)}
+                  style={{ width: '100%', background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '4px', fontFamily: 'Arial, sans-serif', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  + Press a Post
+                </button>
+              </div>
+            )}
           </div>
 
-<div style={{ marginTop: '10px', border: '2px solid #c0c0c0', background: '#c0c0c0' }}>
-  <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <div style={{ color: '#fff', fontSize: '9px', fontFamily: "'Courier New', monospace", fontWeight: 'bold' }}>WINAMP.EXE</div>
-    <div style={{ display: 'flex', gap: '2px' }}>
-      {['_','X'].map(b => <div key={b} style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{b}</div>)}
-    </div>
-  </div>
-  <div style={{ background: '#000', padding: '6px', borderTop: '1px solid #444' }}>
-    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#00ff00', marginBottom: '4px', animation: 'blink 2s infinite' }}>
-      &gt;&gt; THE PRESS FM &lt;&lt;
-    </div>
-    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', marginBottom: '6px' }}>
-      NOW PLAYING: TRACK1.MP3
-    </div>
-   <audio id="press-audio" src={process.env.PUBLIC_URL + '/TRACK1.mp3'} loop style={{ display: 'none' }} />
-    <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
-      {[
-        { label: '|◄◄', id: 'rew' },
-        { label: '► PLAY', id: 'play' },
-        { label: '■ STOP', id: 'stop' },
-        { label: '►►|', id: 'fwd' },
-      ].map(btn => (
-        <button key={btn.id}
-          onClick={() => {
-            const audio = document.getElementById('press-audio');
-            if (btn.id === 'play') audio.play();
-            if (btn.id === 'stop') audio.pause();
-          }}
-          style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 4px', fontFamily: "'Courier New', monospace", fontSize: '9px', cursor: 'pointer', fontWeight: 'bold' }}>
-          {btn.label}
-        </button>
-      ))}
-    </div>
-  </div>
-</div>
+          {/* Win95 Treasury Window */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Treasury.exe</span>
+              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
+            </div>
+            <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '8px', textAlign: 'center' }}>
+              
+              <TreasuryBalance />
+            </div>
+          </div>
 
+          {/* Win95 Users Window */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Pressers Online</span>
+              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
+            </div>
+            <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '8px', textAlign: 'center' }}>
+              <UserCount />
+            </div>
+          </div>
+
+          {/* Win95 Best Viewed Window */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Readme.txt</span>
+              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
+            </div>
+            <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '6px', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#000', textAlign: 'center' }}>
+              Best viewed in<br/>Netscape 4.0<br/>800x600 res<br/>56K modem
+            </div>
+          </div>
+
+          {/* WinAmp Player */}
+          <div style={{ border: '2px solid #000', background: '#c0c0c0' }}>
+            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>WINAMP.EXE</span>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {['_', 'X'].map(b => <div key={b} style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{b}</div>)}
+              </div>
+            </div>
+            <div style={{ background: '#000', padding: '6px', borderTop: '1px solid #444' }}>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: '#00ff00', marginBottom: '4px', animation: 'blink 2s infinite' }}>
+                &gt;&gt; THE PRESS FM &lt;&lt;
+              </div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', marginBottom: '6px' }}>
+                NOW PLAYING: TRACK1.MP3
+              </div>
+              <audio id="press-audio" src={process.env.PUBLIC_URL + '/TRACK1.mp3'} loop style={{ display: 'none' }} />
+              <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
+                {[
+                  { label: '|◄◄', id: 'rew' },
+                  { label: '► PLAY', id: 'play' },
+                  { label: '■ STOP', id: 'stop' },
+                  { label: '►►|', id: 'fwd' },
+                ].map(btn => (
+                  <button key={btn.id}
+                    onClick={() => {
+                      const audio = document.getElementById('press-audio');
+                      if (btn.id === 'play') audio.play();
+                      if (btn.id === 'stop') audio.pause();
+                    }}
+                    style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '2px 4px', fontFamily: "'Courier New', monospace", fontSize: '9px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
         </aside>
 
