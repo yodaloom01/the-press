@@ -245,7 +245,11 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 6px', fontSize: '9px', ...mono, textDecoration: 'none', animation: 'blink 1.5s infinite' }}>
   ** ${post.coin_ticker} **
 </a>
-<button onClick={() => setShowChart(c => !c)}
+<button onClick={() => {
+  const audio = document.getElementById('press-audio');
+  if (audio) audio.play();
+  setShowChart(c => !c);
+}}
   style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '1px 6px', fontSize: '9px', ...mono, cursor: 'pointer' }}>
   {showChart ? '[CLOSE]' : 'CHART'}
 </button>
