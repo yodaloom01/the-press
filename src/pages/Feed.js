@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { PostCard } from '../components/PostCard';
 import { PressModal } from '../components/PressModal';
-import { fetchPosts, subscribeToNewPosts, fetchFollowingPosts, supabase, getTotalUsers } from '../lib/supabase';
+import { fetchPosts, fetchLouvePosts, subscribeToNewPosts, fetchFollowingPosts, supabase, getTotalUsers } from '../lib/supabase';
 import { shortWallet } from '../lib/solana';
 import { useCoinPrices } from '../hooks/useCoinPrices';
 
@@ -113,6 +113,7 @@ const SORT_OPTIONS = [
   { key: 'trending', label: '[TRENDING]' },
   { key: 'created_at', label: '[NEW]' },
   { key: 'amount_paid_usd', label: '[TOP $$$]' },
+  { key: 'louvre', label: '[THE LOUVRE]' },
 
 ];
 
@@ -125,7 +126,7 @@ export const Feed = () => {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState('created_at');
   const [showModal, setShowModal] = useState(false);
-  const [treasuryTotal, setTreasuryTotal] = useState(0);
+  const [treasuryTotal, setTreasuryTotal] = useState(0)
  
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -133,9 +134,11 @@ export const Feed = () => {
       let data;
       if (sort === 'following' && publicKey) {
         data = await fetchFollowingPosts(publicKey.toBase58());
-      } else {
-        data = await fetchPosts(sort);
-      }
+      } else if (sort === 'louvre') {
+  data = await fetchLouvePosts();
+} else {
+  data = await fetchPosts(sort);
+}
       setPosts(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }

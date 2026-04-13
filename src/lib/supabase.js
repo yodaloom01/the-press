@@ -87,7 +87,40 @@ export const fetchPost = async (id) => {
   if (error) throw error;
   return data;
 };
+export const fetchLouvePosts = async () => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('is_active', true)
+    .not('coin_price_at_post', 'is', null)
+    .limit(50);
+  if (error) throw error;
+  const posts = data || [];
 
+  // Fetch live prices for all unique mints
+  const mints = [...new Set(posts.map(p => p.coin_mint))];
+  const priceMap = {};
+  try {
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mints.join(',')}`);
+    const priceData = await res.json();
+    (priceData.pairs || []).forEach(pair => {
+      const mint = pair.baseToken?.address;
+      if (mint && !priceMap[mint]) priceMap[mint] = parseFloat(pair.priceUsd) || 0;
+    });
+  } catch {}
+
+  // Filter to only posts where coin is up 10,000%+
+  return posts.filter(p => {
+    const current = priceMap[p.coin_mint];
+    if (!current || !p.coin_price_at_post) return false;
+    const pct = ((current - p.coin_price_at_post) / p.coin_price_at_post) * 100;
+    return pct >= 10000;
+  }).sort((a, b) => {
+    const pctA = ((priceMap[a.coin_mint] - a.coin_price_at_post) / a.coin_price_at_post) * 100;
+    const pctB = ((priceMap[b.coin_mint] - b.coin_price_at_post) / b.coin_price_at_post) * 100;
+    return pctB - pctA;
+  });
+};
 export const fetchQuotedPost = async (id) => {
   if (!id) return null;
   const { data } = await supabase.from('posts').select('*').eq('id', id).single();
