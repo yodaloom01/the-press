@@ -138,6 +138,7 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   const [views, setViews] = useState(Number(post.views) || 0);
   const [visibleComments, setVisibleComments] = useState(5);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const [quotedPost, setQuotedPost] = useState(null);
   const impressionRecorded = useRef(false);
   const cardRef = useRef();
@@ -239,13 +240,27 @@ export const PostCard = ({ post, onLike, onDelete }) => {
           <span style={{ fontSize: '10px', color: '#8888ff', ...mono }}> // {format(post.created_at)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff00ff', animation: 'pulse 2s infinite' }} />
-          <a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer"
-            style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 6px', fontSize: '9px', ...mono, textDecoration: 'none', animation: 'blink 1.5s infinite' }}>
-            ** ${post.coin_ticker} **
-          </a>
+         <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ff00ff', animation: 'pulse 2s infinite' }} />
+<a href={`https://pump.fun/coin/${post.coin_mint}`} target="_blank" rel="noopener noreferrer"
+  style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 6px', fontSize: '9px', ...mono, textDecoration: 'none', animation: 'blink 1.5s infinite' }}>
+  ** ${post.coin_ticker} **
+</a>
+<button onClick={() => setShowChart(c => !c)}
+  style={{ background: '#c0c0c0', color: '#000', borderTop: '2px solid #fff', borderLeft: '2px solid #fff', borderBottom: '2px solid #444', borderRight: '2px solid #444', padding: '1px 6px', fontSize: '9px', ...mono, cursor: 'pointer' }}>
+  {showChart ? '[CLOSE]' : 'CHART'}
+</button>
         </div>
       </div>
+
+      {showChart && (
+        <div style={{ borderBottom: '1px solid #00ffff' }}>
+          <iframe
+            src={`https://dexscreener.com/solana/${post.coin_mint}?embed=1&theme=dark`}
+            style={{ width: '100%', height: '400px', border: 'none', display: 'block' }}
+            title="chart"
+          />
+        </div>
+      )}
 
       {/* Repressed by banner */}
       {post.repressed_by && (
@@ -255,7 +270,7 @@ export const PostCard = ({ post, onLike, onDelete }) => {
       )}
 
       {/* Media */}
-      {post.media_url && (
+      {post.media_url && !showChart && (
         <div style={{ position: 'relative', borderBottom: '1px solid #333' }}>
           {post.media_type === 'video'
             ? <video style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', display: 'block' }} src={post.media_url} controls muted loop playsInline />
