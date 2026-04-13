@@ -207,9 +207,9 @@ export const Feed = () => {
       &gt;&gt; THE PRESS FM &lt;&lt;
     </div>
     <div style={{ fontFamily: "'Courier New', monospace", fontSize: '8px', color: '#ff00ff', marginBottom: '6px' }}>
-      NOW PLAYING: PeptideGooner.MP3
+      NOW PLAYING: TRACK1.MP3
     </div>
-   <audio id="press-audio" src={process.env.PUBLIC_URL + '/peptidegooner.mp3'} loop style={{ display: 'none' }} />
+   <audio id="press-audio" src={process.env.PUBLIC_URL + '/TRACK1.mp3'} loop style={{ display: 'none' }} />
     <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
       {[
         { label: '|◄◄', id: 'rew' },
