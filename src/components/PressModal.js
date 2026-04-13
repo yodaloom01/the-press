@@ -185,6 +185,7 @@ export const PressModal = ({ onClose, onSuccess }) => {
         amountPaidUsd: usdValue,
         txSignature: signature,
         reachTarget: reach,
+        coinPriceAtPost: effectivePrice,
       });
 
       setStep('done');

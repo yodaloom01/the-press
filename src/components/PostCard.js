@@ -141,6 +141,22 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   const [showChart, setShowChart] = useState(false);
   const [quotedPost, setQuotedPost] = useState(null);
   const impressionRecorded = useRef(false);
+  const [livePrice, setLivePrice] = useState(null);
+
+useEffect(() => {
+  if (!post.coin_mint) return;
+  const fetchPrice = async () => {
+    try {
+      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${post.coin_mint}`);
+      const data = await res.json();
+      const price = parseFloat(data?.pairs?.[0]?.priceUsd);
+      if (price) setLivePrice(price);
+    } catch {}
+  };
+  fetchPrice();
+  const interval = setInterval(fetchPrice, 60000);
+  return () => clearInterval(interval);
+}, [post.coin_mint]);
   const cardRef = useRef();
 
   useEffect(() => {
@@ -245,6 +261,15 @@ export const PostCard = ({ post, onLike, onDelete }) => {
   style={{ background: '#000', border: '1px solid #ff00ff', color: '#ff00ff', padding: '1px 6px', fontSize: '9px', ...mono, textDecoration: 'none', animation: 'blink 1.5s infinite' }}>
   ** ${post.coin_ticker} **
 </a>
+{post.coin_price_at_post && livePrice && (() => {
+  const pct = ((livePrice - post.coin_price_at_post) / post.coin_price_at_post) * 100;
+  const isUp = pct >= 0;
+  return (
+    <span style={{ fontFamily: "'Courier New', monospace", fontSize: '9px', color: isUp ? '#00ff00' : '#ff4444', padding: '1px 5px', border: `1px solid ${isUp ? '#00ff00' : '#ff4444'}`, background: '#000' }}>
+      {isUp ? '+' : ''}{pct.toFixed(1)}%
+    </span>
+  );
+})()}
 <button onClick={() => {
   const audio = document.getElementById('press-audio');
   if (audio) audio.play();

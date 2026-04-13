@@ -25,7 +25,7 @@ export const uploadMedia = async (file, walletAddress) => {
 // ── Create post ───────────────────────────────────────────────
 export const createPost = async ({
   walletAddress, caption, mediaUrl, mediaType,
-  coinTicker, coinMint, amountPaid, amountPaidUsd, txSignature, reachTarget, quoteOf,
+  coinTicker, coinMint, amountPaid, amountPaidUsd, txSignature, reachTarget, quoteOf, coinPriceAtPost,
 }) => {
   const { data, error } = await supabase
     .from('posts')
@@ -36,6 +36,7 @@ export const createPost = async ({
       amount_paid: amountPaid, amount_paid_usd: amountPaidUsd,
       tx_signature: txSignature, reach_target: reachTarget,
       quote_of: quoteOf || null,
+      coin_price_at_post: coinPriceAtPost || null,
     })
     .select().single();
   if (error) throw error;
