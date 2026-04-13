@@ -33,7 +33,7 @@ const win95Btn = {
   marginBottom: '2px',
 };
 
-const TreasuryBalance = () => {
+const TreasuryBalance = ({ onTotalUpdate }) => {
   const [total, setTotal] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,6 +61,7 @@ const TreasuryBalance = () => {
         (priceData.pairs || []).forEach(pair => { const mint = pair.baseToken?.address; if (mint && !priceMap[mint]) priceMap[mint] = parseFloat(pair.priceUsd) || 0; });
         const totalValue = tokens.reduce((sum, t) => sum + (t.amount * (priceMap[t.mint] || 0)), 0);
         setTotal(totalValue);
+       if (onTotalUpdate) onTotalUpdate(totalValue);
       } catch (err) { setTotal(0); }
       finally { setLoading(false); }
     };
@@ -124,7 +125,8 @@ export const Feed = () => {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState('created_at');
   const [showModal, setShowModal] = useState(false);
-
+  const [treasuryTotal, setTreasuryTotal] = useState(0);
+ 
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
@@ -200,7 +202,7 @@ export const Feed = () => {
             </div>
             <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '8px', textAlign: 'center' }}>
               
-              <TreasuryBalance />
+              <TreasuryBalance onTotalUpdate={setTreasuryTotal} />
             </div>
           </div>
 
@@ -215,16 +217,24 @@ export const Feed = () => {
             </div>
           </div>
 
-          {/* Win95 Best Viewed Window */}
-          <div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
-            <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Readme.txt</span>
-              <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
-            </div>
-            <div style={{ background: '#fff', margin: '4px', border: '1px inset #808080', padding: '6px', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#000', textAlign: 'center' }}>
-              Best viewed in<br/>Netscape 4.0<br/>800x600 res<br/>56K modem
-            </div>
-          </div>
+    {/* Prize Window */}
+<div style={{ border: '2px solid #000', background: '#c0c0c0', marginBottom: '8px' }}>
+  <div style={{ background: '#000080', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <span style={{ color: '#fff', fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>Prize.exe</span>
+    <div style={{ width: '14px', height: '12px', background: '#c0c0c0', borderTop: '1px solid #fff', borderLeft: '1px solid #fff', borderBottom: '1px solid #444', borderRight: '1px solid #444', fontSize: '9px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>X</div>
+  </div>
+  <div style={{ margin: '4px', border: '1px inset #808080', overflow: 'hidden' }}>
+    <video src={process.env.PUBLIC_URL + '/lamborghini_countach.mp4'} autoPlay loop muted playsInline style={{ width: '100%', display: 'block' }} />
+    <div style={{ background: '#fff', padding: '4px' }}>
+      <div style={{ height: '8px', background: '#c0c0c0', border: '1px inset #808080', overflow: 'hidden' }}>
+        <div style={{ height: '100%', background: '#000080', width: `${Math.min(100, (treasuryTotal / 1000000) * 100)}%`, transition: 'width 1s ease' }} />
+      </div>
+      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: '#808080', textAlign: 'center', marginTop: '3px' }}>
+        ${treasuryTotal.toFixed(2)} / $1,000,000
+      </div>
+    </div>
+  </div>
+</div>
 
           {/* WinAmp Player */}
           <div style={{ border: '2px solid #000', background: '#c0c0c0' }}>
