@@ -38,51 +38,56 @@ const TreasuryBalance = ({ onTotalUpdate }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWalletValue = async () => {
-      try {
-        const rpc = 'https://mainnet.helius-rpc.com/?api-key=56557c79-1e29-43da-a73f-1b8f58e3140a';
-        const res = await fetch(rpc, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0', id: 'treasury',
-            method: 'getTokenAccountsByOwner',
-            params: ['3be48KfHNFmQwn9DQqfYYDhXPrs5xQVzgF9sNW6YQYzx', { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' }, { encoding: 'jsonParsed' }]
-          })
-        });
-        const data = await res.json();
-        const accounts = data?.result?.value || [];
-        const tokens = accounts.map(a => ({ mint: a.account.data.parsed.info.mint, amount: Number(a.account.data.parsed.info.tokenAmount.uiAmount) || 0 })).filter(t => t.amount > 0);
-        if (tokens.length === 0) { setTotal(0); setLoading(false); return; }
-        const mints = tokens.map(t => t.mint).join(',');
-        const priceRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mints}`);
-        const priceData = await priceRes.json();
-        const priceMap = {};
-        (priceData.pairs || []).forEach(pair => { const mint = pair.baseToken?.address; if (mint && !priceMap[mint]) priceMap[mint] = parseFloat(pair.priceUsd) || 0; });
-        const totalValue = tokens.reduce((sum, t) => sum + (t.amount * (priceMap[t.mint] || 0)), 0);
-        setTotal(totalValue);
-       if (onTotalUpdate) onTotalUpdate(totalValue);
-      } catch (err) { setTotal(0); }
-      finally { setLoading(false); }
-    };
+const fetchWalletValue = async () => {
+  try {
+    const rpc = 'https://mainnet.helius-rpc.com/?api-key=56557c79-1e29-43da-a73f-1b8f58e3140a';
+    const res = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 'treasury',
+        method: 'getAssetsByOwner',
+        params: {
+          ownerAddress: '3be48KfHNFmQwn9DQqfYYDhXPrs5xQVzgF9sNW6YQYzx',
+          page: 1,
+          limit: 100,
+          displayOptions: { showFungible: true, showNativeBalance: true }
+        }
+      })
+    });
+    const data = await res.json();
+    const items = data?.result?.items || [];
+    const nativeBalance = data?.result?.nativeBalance?.total_price || 0;
+    const tokenTotal = items
+      .filter(item => item.interface === 'FungibleToken' || item.interface === 'FungibleAsset')
+      .reduce((sum, item) => {
+        const price = item.token_info?.price_info?.total_price || 0;
+        return sum + price;
+      }, 0);
+    const totalValue = tokenTotal + nativeBalance;
+    setTotal(totalValue);
+    if (onTotalUpdate) onTotalUpdate(totalValue);
+  } catch (err) { setTotal(0); }
+  finally { setLoading(false); }
+};
     fetchWalletValue();
     const interval = setInterval(fetchWalletValue, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  const formatted = total === null ? '...' : total >= 1000000 ? `$${(total/1000000).toFixed(2)}M` : total >= 1000 ? `$${(total/1000).toFixed(2)}K` : `$${total?.toFixed(2)}`;
-
-return (
-  <div style={{ textAlign: 'center', padding: '4px' }}>
-    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#808080', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-      Live Wallet Value
-    </div>    
-    <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 'bold', color: '#008000', letterSpacing: '1px' }}>
-      {loading ? '...' : formatted}
+const formatted = total === null ? '...' : total >= 1000000 ? `$${(total/1000000).toFixed(2)}M` : total >= 1000 ? `$${(total/1000).toFixed(2)}K` : `$${total?.toFixed(2)}`;
+  return (
+    <div style={{ textAlign: 'center', padding: '4px' }}>
+      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#808080', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 'bold' }}>
+        Live Wallet Value
+      </div>    
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: '32px', fontWeight: 'bold', color: '#008000', letterSpacing: '1px' }}>
+        {loading ? '...' : formatted}
+      </div>
     </div>
-  </div>
   );
 };
+
 
 const UserCount = () => {
   const [total, setTotal] = useState(null);
